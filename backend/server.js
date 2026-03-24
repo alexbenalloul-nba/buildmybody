@@ -3,7 +3,11 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import db from './db.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 
@@ -14,19 +18,12 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
 const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || `${BACKEND_URL}/api/auth/google/callback`;
 
-const ALLOWED_ORIGINS = [
-  'https://buildmybody.up.railway.app',
-  'http://localhost:5173',
-  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
-];
-
+// CORS only needed for local dev (Vite runs on a different port)
 const corsOptions = {
-  origin: ALLOWED_ORIGINS,
+  origin: 'http://localhost:5173',
   credentials: true,
   optionsSuccessStatus: 200,
 };
-
-// Handle OPTIONS preflight for all routes explicitly
 app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 app.use(express.json());
@@ -216,6 +213,16 @@ app.get('/api/stats', requireAuth, (req, res) => {
   const recentWorkouts = db.prepare('SELECT * FROM workouts WHERE user_id = ? ORDER BY date DESC LIMIT 5').all(req.userId);
   res.json({ totalWorkouts, recentWorkouts });
 });
+
+// ── Serve React frontend ──────────────────────────────────────────────────────
+
+const distPath = join(__dirname, '../frontend/dist');
+app.use(express.static(distPath));
+app.get('*', (req, res) => {
+  res.sendFile(join(distPath, 'index.html'));
+});
+
+// ── Process error handlers ────────────────────────────────────────────────────
 
 process.on('uncaughtException', (err) => {
   console.error('Uncaught exception:', err);

@@ -1,10 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  preview: {
-    allowedHosts: ['buildmybody.up.railway.app']
-  }
+  server: {
+    // Proxy API calls to the local Express backend during development
+    proxy: {
+      '/api': 'http://localhost:3001',
+    },
+  },
 })

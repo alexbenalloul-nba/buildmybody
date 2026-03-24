@@ -104,7 +104,8 @@ function AuthModal({ mode, onClose }) {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://buildmybody-production.up.railway.app';
+  // Same-origin in production; explicit host only needed in local dev
+  const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:3001' : '';
 
   const handleSubmit = async (e) => {
     e.preventDefault();

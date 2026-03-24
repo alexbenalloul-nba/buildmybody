@@ -1,4 +1,6 @@
-const BASE = import.meta.env.VITE_API_URL || 'https://buildmybody-production.up.railway.app/api';
+// In production the frontend is served by the same Express server, so /api is same-origin.
+// In local dev, Vite proxies /api → http://localhost:3001 (see vite.config.js).
+const BASE = '/api';
 
 async function request(path, options = {}) {
   const res = await fetch(`${BASE}${path}`, {
