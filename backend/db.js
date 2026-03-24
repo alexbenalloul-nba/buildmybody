@@ -17,6 +17,7 @@ db.exec(`
     password_hash TEXT,
     google_id TEXT UNIQUE,
     name TEXT,
+    role TEXT NOT NULL DEFAULT 'client',
     created_at TEXT DEFAULT (datetime('now'))
   );
 
@@ -36,6 +37,15 @@ db.exec(`
     sets_data TEXT,
     duration_minutes INTEGER,
     notes TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    receiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    read INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now'))
   );
 
   CREATE TABLE IF NOT EXISTS measurements (
@@ -62,6 +72,9 @@ function addColumnIfMissing(table, column, def) {
     db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${def}`);
   }
 }
+
+// Users: add role column
+addColumnIfMissing('users', 'role', "TEXT NOT NULL DEFAULT 'client'");
 
 // Workouts: add user_id (nullable so old rows aren't broken)
 addColumnIfMissing('workouts', 'user_id', 'INTEGER REFERENCES users(id) ON DELETE CASCADE');

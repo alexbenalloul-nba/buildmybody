@@ -31,4 +31,15 @@ export const api = {
 
   // Stats
   getStats: () => request('/stats'),
+
+  // Coach
+  getCoach: () => request('/coach'),
+  getClients: () => request('/coach/clients'),
+  getClient: (id) => request(`/coach/clients/${id}`),
+  getClientWorkout: (clientId, workoutId) => request(`/coach/clients/${clientId}/workouts/${workoutId}`),
+
+  // Messages
+  getMessages: (userId) => request(`/messages/${userId}`),
+  sendMessage: (userId, content) => request(`/messages/${userId}`, { method: 'POST', body: JSON.stringify({ content }) }),
+  getUnreadCount: () => request('/messages/unread-count'),
 };

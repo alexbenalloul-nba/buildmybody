@@ -17,6 +17,7 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
 const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || `${BACKEND_URL}/api/auth/google/callback`;
+const COACH_EMAIL = process.env.COACH_EMAIL ? process.env.COACH_EMAIL.toLowerCase() : null;
 
 // CORS only needed for local dev (Vite runs on a different port)
 const corsOptions = {
@@ -55,6 +56,16 @@ function requireAuth(req, res, next) {
   }
 }
 
+function requireCoach(req, res, next) {
+  const user = db.prepare('SELECT role FROM users WHERE id = ?').get(req.userId);
+  if (!user || user.role !== 'coach') return res.status(403).json({ error: 'Forbidden' });
+  next();
+}
+
+function roleForEmail(email) {
+  return COACH_EMAIL && email.toLowerCase() === COACH_EMAIL ? 'coach' : 'client';
+}
+
 // ── Auth Routes ───────────────────────────────────────────────────────────────
 
 app.post('/api/auth/register', async (req, res) => {
@@ -64,9 +75,10 @@ app.post('/api/auth/register', async (req, res) => {
   const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email.toLowerCase());
   if (existing) return res.status(409).json({ error: 'Email already registered' });
   const hash = await bcrypt.hash(password, 12);
-  const result = db.prepare('INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)').run(email.toLowerCase(), hash, name || null);
+  const role = roleForEmail(email);
+  const result = db.prepare('INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)').run(email.toLowerCase(), hash, name || null, role);
   issueToken(res, result.lastInsertRowid);
-  res.status(201).json({ id: result.lastInsertRowid, email: email.toLowerCase(), name });
+  res.status(201).json({ id: result.lastInsertRowid, email: email.toLowerCase(), name, role });
 });
 
 app.post('/api/auth/login', async (req, res) => {
@@ -77,7 +89,7 @@ app.post('/api/auth/login', async (req, res) => {
   const ok = await bcrypt.compare(password, user.password_hash);
   if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
   issueToken(res, user.id);
-  res.json({ id: user.id, email: user.email, name: user.name });
+  res.json({ id: user.id, email: user.email, name: user.name, role: user.role || 'client' });
 });
 
 app.post('/api/auth/logout', (req, res) => {
@@ -86,9 +98,9 @@ app.post('/api/auth/logout', (req, res) => {
 });
 
 app.get('/api/auth/me', requireAuth, (req, res) => {
-  const user = db.prepare('SELECT id, email, name FROM users WHERE id = ?').get(req.userId);
+  const user = db.prepare('SELECT id, email, name, role FROM users WHERE id = ?').get(req.userId);
   if (!user) return res.status(404).json({ error: 'User not found' });
-  res.json(user);
+  res.json({ ...user, role: user.role || 'client' });
 });
 
 // ── Google OAuth ──────────────────────────────────────────────────────────────
@@ -134,7 +146,8 @@ app.get('/api/auth/google/callback', async (req, res) => {
       if (user) {
         db.prepare('UPDATE users SET google_id = ? WHERE id = ?').run(gUser.sub, user.id);
       } else {
-        const r = db.prepare('INSERT INTO users (email, google_id, name) VALUES (?, ?, ?)').run(gUser.email, gUser.sub, gUser.name);
+        const role = roleForEmail(gUser.email);
+        const r = db.prepare('INSERT INTO users (email, google_id, name, role) VALUES (?, ?, ?, ?)').run(gUser.email, gUser.sub, gUser.name, role);
         user = { id: r.lastInsertRowid };
       }
     }
@@ -212,6 +225,98 @@ app.get('/api/stats', requireAuth, (req, res) => {
   const totalWorkouts = db.prepare('SELECT COUNT(*) as count FROM workouts WHERE user_id = ?').get(req.userId).count;
   const recentWorkouts = db.prepare('SELECT * FROM workouts WHERE user_id = ? ORDER BY date DESC LIMIT 5').all(req.userId);
   res.json({ totalWorkouts, recentWorkouts });
+});
+
+// ── Coach Routes ──────────────────────────────────────────────────────────────
+
+// List all clients with stats
+app.get('/api/coach/clients', requireAuth, requireCoach, (req, res) => {
+  const clients = db.prepare(`
+    SELECT
+      u.id, u.email, u.name, u.created_at,
+      COUNT(w.id) as total_workouts,
+      MAX(w.date) as last_workout_date
+    FROM users u
+    LEFT JOIN workouts w ON w.user_id = u.id
+    WHERE u.role = 'client'
+    GROUP BY u.id
+    ORDER BY u.name ASC
+  `).all();
+  res.json(clients);
+});
+
+// Get a client's full profile + all workouts
+app.get('/api/coach/clients/:id', requireAuth, requireCoach, (req, res) => {
+  const client = db.prepare('SELECT id, email, name, created_at FROM users WHERE id = ? AND role = ?').get(req.params.id, 'client');
+  if (!client) return res.status(404).json({ error: 'Client not found' });
+  const workouts = db.prepare(`
+    SELECT w.*, COUNT(e.id) as exercise_count
+    FROM workouts w
+    LEFT JOIN exercises e ON e.workout_id = w.id
+    WHERE w.user_id = ?
+    GROUP BY w.id
+    ORDER BY w.date DESC
+  `).all(req.params.id);
+  const totalWorkouts = workouts.length;
+  res.json({ ...client, workouts, totalWorkouts });
+});
+
+// Get a specific workout for a client (coach view)
+app.get('/api/coach/clients/:clientId/workouts/:workoutId', requireAuth, requireCoach, (req, res) => {
+  const workout = db.prepare('SELECT * FROM workouts WHERE id = ? AND user_id = ?').get(req.params.workoutId, req.params.clientId);
+  if (!workout) return res.status(404).json({ error: 'Not found' });
+  const exercises = db.prepare('SELECT * FROM exercises WHERE workout_id = ?').all(req.params.workoutId);
+  const parsed = exercises.map((ex) => ({ ...ex, sets_data: ex.sets_data ? JSON.parse(ex.sets_data) : [] }));
+  res.json({ ...workout, exercises: parsed });
+});
+
+// ── Messages ──────────────────────────────────────────────────────────────────
+
+// Get unread message count for current user
+app.get('/api/messages/unread-count', requireAuth, (req, res) => {
+  const count = db.prepare('SELECT COUNT(*) as count FROM messages WHERE receiver_id = ? AND read = 0').get(req.userId).count;
+  res.json({ count });
+});
+
+// Get message thread between current user and another user
+app.get('/api/messages/:userId', requireAuth, (req, res) => {
+  const otherId = parseInt(req.params.userId);
+  const messages = db.prepare(`
+    SELECT m.*, u.name as sender_name, u.email as sender_email
+    FROM messages m
+    JOIN users u ON u.id = m.sender_id
+    WHERE (m.sender_id = ? AND m.receiver_id = ?)
+       OR (m.sender_id = ? AND m.receiver_id = ?)
+    ORDER BY m.created_at ASC
+  `).all(req.userId, otherId, otherId, req.userId);
+  // Mark messages sent to current user as read
+  db.prepare('UPDATE messages SET read = 1 WHERE sender_id = ? AND receiver_id = ? AND read = 0').run(otherId, req.userId);
+  res.json(messages);
+});
+
+// Send a message to another user
+app.post('/api/messages/:userId', requireAuth, (req, res) => {
+  const { content } = req.body;
+  if (!content || !content.trim()) return res.status(400).json({ error: 'Message content required' });
+  const receiverId = parseInt(req.params.userId);
+  // Only allow coach↔client messaging (coach to client, or client to coach)
+  const sender = db.prepare('SELECT role FROM users WHERE id = ?').get(req.userId);
+  const receiver = db.prepare('SELECT id, role FROM users WHERE id = ?').get(receiverId);
+  if (!receiver) return res.status(404).json({ error: 'User not found' });
+  const validPair = (sender.role === 'coach' && receiver.role === 'client') ||
+                    (sender.role === 'client' && receiver.role === 'coach');
+  if (!validPair) return res.status(403).json({ error: 'Can only message between coach and client' });
+  const result = db.prepare('INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)').run(req.userId, receiverId, content.trim());
+  const msg = db.prepare('SELECT m.*, u.name as sender_name, u.email as sender_email FROM messages m JOIN users u ON u.id = m.sender_id WHERE m.id = ?').get(result.lastInsertRowid);
+  res.status(201).json(msg);
+});
+
+// Get the coach user (for clients to know who to message)
+app.get('/api/coach', requireAuth, (req, res) => {
+  if (!COACH_EMAIL) return res.status(404).json({ error: 'No coach configured' });
+  const coach = db.prepare('SELECT id, name, email FROM users WHERE role = ?').get('coach');
+  if (!coach) return res.status(404).json({ error: 'Coach not found' });
+  res.json(coach);
 });
 
 // ── Serve React frontend ──────────────────────────────────────────────────────
