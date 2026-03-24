@@ -1,25 +1,15 @@
-process.on('uncaughtException', err => { console.log('UNCAUGHT:', err); process.exit(1); });
-process.on('unhandledRejection', reason => { console.log('UNHANDLED REJECTION:', reason); process.exit(1); });
-
-console.log('--- server.js starting ---');
-
 import express from 'express';
-console.log('express loaded');
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-console.log('importing db...');
 import db from './db.js';
-console.log('db loaded');
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-console.log('__dirname:', __dirname);
 
 const app = express();
-console.log('express app created');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://buildmybody.up.railway.app';
@@ -226,23 +216,15 @@ app.get('/api/stats', requireAuth, (req, res) => {
 
 // ── Serve React frontend ──────────────────────────────────────────────────────
 
-console.log('setting up static file serving...');
 const distPath = join(__dirname, '../frontend/dist');
-console.log('distPath:', distPath);
 app.use(express.static(distPath));
 app.get('*', (req, res) => {
   res.sendFile(join(distPath, 'index.html'));
 });
-console.log('static serving configured');
 
 const PORT = process.env.PORT || 3001;
-console.log('process.env.PORT =', process.env.PORT, '| using port', PORT);
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Backend running on port ${PORT}`);
-  // If we get here the server is alive — schedule a check to detect post-bind crashes
-  setTimeout(() => console.log('still alive 2s after bind'), 2000);
-});
+const server = app.listen(PORT, '0.0.0.0', () => console.log(`Backend running on port ${PORT}`));
 server.on('error', (err) => {
-  console.log('FAILED TO BIND PORT:', err);
+  console.error('Failed to bind port:', err);
   process.exit(1);
 });
