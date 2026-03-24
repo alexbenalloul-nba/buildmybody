@@ -19,6 +19,11 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
 const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || `${BACKEND_URL}/api/auth/google/callback`;
 const COACH_EMAIL = process.env.COACH_EMAIL ? process.env.COACH_EMAIL.toLowerCase() : null;
 
+// If COACH_EMAIL is set, ensure that user always has the coach role (handles existing accounts)
+if (COACH_EMAIL) {
+  db.prepare("UPDATE users SET role = 'coach' WHERE email = ? AND role != 'coach'").run(COACH_EMAIL);
+}
+
 // CORS only needed for local dev (Vite runs on a different port)
 const corsOptions = {
   origin: 'http://localhost:5173',
