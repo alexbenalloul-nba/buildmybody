@@ -236,8 +236,12 @@ app.get('*', (req, res) => {
 console.log('static serving configured');
 
 const PORT = process.env.PORT || 3001;
-console.log('about to listen on port', PORT);
-const server = app.listen(PORT, '0.0.0.0', () => console.log(`Backend running on port ${PORT}`));
+console.log('process.env.PORT =', process.env.PORT, '| using port', PORT);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Backend running on port ${PORT}`);
+  // If we get here the server is alive — schedule a check to detect post-bind crashes
+  setTimeout(() => console.log('still alive 2s after bind'), 2000);
+});
 server.on('error', (err) => {
   console.log('FAILED TO BIND PORT:', err);
   process.exit(1);
