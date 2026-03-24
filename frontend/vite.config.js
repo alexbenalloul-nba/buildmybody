@@ -9,6 +9,6 @@ export default defineConfig({
     },
   },
   preview: {
-    allowedHosts: ['buildmybody.up.railway.app'],
+    allowedHosts: 'all',
   },
 })
