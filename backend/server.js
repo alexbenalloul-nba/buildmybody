@@ -7,25 +7,39 @@ import db from './db.js';
 
 const app = express();
 
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
 const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || `${BACKEND_URL}/api/auth/google/callback`;
 
-app.use(cors({ origin: FRONTEND_URL, credentials: true }));
+const ALLOWED_ORIGINS = [
+  'https://buildmybody.up.railway.app',
+  'http://localhost:5173',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, cb) => {
+    // Allow server-to-server (no origin) and listed origins
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) cb(null, true);
+    else cb(new Error(`CORS: origin ${origin} not allowed`));
+  },
+  credentials: true,
+}));
 app.use(express.json());
 app.use(cookieParser());
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+const isProd = process.env.NODE_ENV === 'production';
+
 function issueToken(res, userId) {
   const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '7d' });
   res.cookie('token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax', // 'none' required for cross-origin fetch with credentials
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 }
@@ -68,7 +82,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 app.post('/api/auth/logout', (req, res) => {
-  res.clearCookie('token', { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
+  res.clearCookie('token', { httpOnly: true, secure: isProd, sameSite: isProd ? 'none' : 'lax' });
   res.json({ success: true });
 });
 
