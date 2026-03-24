@@ -8,6 +8,7 @@ import db from './db.js';
 const app = express();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://buildmybody.up.railway.app';
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
@@ -215,5 +216,18 @@ app.get('/api/stats', requireAuth, (req, res) => {
   res.json({ totalWorkouts, recentWorkouts });
 });
 
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception:', err);
+  process.exit(1);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled rejection:', reason);
+  process.exit(1);
+});
+
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+const server = app.listen(PORT, '0.0.0.0', () => console.log(`Backend running on port ${PORT}`));
+server.on('error', (err) => {
+  console.error('Failed to bind port:', err);
+  process.exit(1);
+});
