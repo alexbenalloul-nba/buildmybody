@@ -216,7 +216,7 @@ app.get('/api/stats', requireAuth, (req, res) => {
 
 // ── Serve React frontend ──────────────────────────────────────────────────────
 
-const distPath = join(__dirname, '../frontend/dist');
+const distPath = join(__dirname, 'public');
 app.use(express.static(distPath));
 app.get('*', (req, res) => {
   res.sendFile(join(distPath, 'index.html'));
