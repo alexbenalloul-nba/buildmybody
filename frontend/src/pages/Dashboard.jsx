@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
+import { useAuth } from '../AuthContext';
 
 function StatCard({ label, value }) {
   return (
@@ -11,24 +12,32 @@ function StatCard({ label, value }) {
   );
 }
 
+const WORKOUTS_PER_LEVEL = 5;
+
 export default function Dashboard() {
+  const { user } = useAuth();
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
     api.getStats().then(setStats).catch(console.error);
   }, []);
 
-  const m = stats?.latestMeasurement;
+  const level = stats ? Math.floor(stats.totalWorkouts / WORKOUTS_PER_LEVEL) + 1 : null;
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
+      <div>
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        {user?.name && <p className="text-gray-400 mt-1">Welcome back, {user.name}!</p>}
+      </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         <StatCard label="Total Workouts" value={stats?.totalWorkouts} />
-        <StatCard label="Weight (lbs)" value={m?.weight_lbs} />
-        <StatCard label="Body Fat %" value={m?.body_fat_pct ? `${m.body_fat_pct}%` : null} />
-        <StatCard label="Last Measurement" value={m?.date} />
+        <StatCard label="Current Level" value={level ? `Level ${level}` : null} />
+        <StatCard
+          label="To Next Level"
+          value={stats ? `${WORKOUTS_PER_LEVEL - (stats.totalWorkouts % WORKOUTS_PER_LEVEL)} workouts` : null}
+        />
       </div>
 
       <div>
@@ -48,7 +57,12 @@ export default function Dashboard() {
             ))}
           </ul>
         ) : (
-          <p className="text-gray-500">No workouts yet. <Link to="/workouts" className="text-brand-500 hover:underline">Log your first one!</Link></p>
+          <p className="text-gray-500">
+            No workouts yet.{' '}
+            <Link to="/workouts" className="text-brand-500 hover:underline">
+              Log your first one!
+            </Link>
+          </p>
         )}
       </div>
     </div>
