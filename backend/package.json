@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node --watch server.js",
+    "dev": "COACH_EMAIL=alexbenalloul@gmail.com node --watch server.js",
+    "build": "cd ../frontend && npm install && npm run build && cp -r dist/. ../backend/public/",
     "start": "node server.js"
   },
   "dependencies": {
