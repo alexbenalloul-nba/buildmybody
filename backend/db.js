@@ -1,9 +1,18 @@
 import Database from 'better-sqlite3';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { mkdirSync } from 'fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const db = new Database(join(__dirname, 'buildmybody.db'));
+
+// In production, set DB_PATH=/data/buildmybody.db via a Railway Volume mounted at /data.
+// Locally, falls back to the project directory so dev works without any extra setup.
+const DB_PATH = process.env.DB_PATH || join(__dirname, 'buildmybody.db');
+
+// Ensure the parent directory exists (matters on first deploy with a fresh volume)
+mkdirSync(dirname(DB_PATH), { recursive: true });
+
+const db = new Database(DB_PATH);
 
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
