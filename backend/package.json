@@ -4,8 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "COACH_EMAIL=alexbenalloul@gmail.com node --watch server.js",
-    "build": "cd ../frontend && npm install && npm run build && cp -r dist/. ../backend/public/",
-    "start": "node server.js"
+"start": "node server.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
