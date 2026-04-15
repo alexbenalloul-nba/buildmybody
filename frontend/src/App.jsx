@@ -12,14 +12,16 @@ import ClientProfile from './pages/ClientProfile';
 import Messages from './pages/Messages';
 
 const navClass = ({ isActive }) =>
-  `px-4 py-2 rounded-lg font-medium transition-colors ${
-    isActive ? 'bg-brand-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'
+  `text-[13px] font-medium pb-0.5 border-b transition-all duration-200 ${
+    isActive
+      ? 'text-white border-white'
+      : 'text-[#555] border-transparent hover:text-[#aaa]'
   }`;
 
 function UnreadBadge({ count }) {
   if (!count) return null;
   return (
-    <span className="ml-1.5 inline-flex items-center justify-center bg-brand-500 text-white text-xs font-bold rounded-full w-5 h-5">
+    <span className="ml-1.5 inline-flex items-center justify-center bg-white text-black text-[10px] font-bold rounded-full w-4 h-4">
       {count > 9 ? '9+' : count}
     </span>
   );
@@ -41,11 +43,11 @@ function ProtectedLayout() {
   }, [isCoach]);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <span className="text-2xl font-black text-brand-500 tracking-tight">BuildMyBody</span>
-          <nav className="flex gap-2">
+    <div className="min-h-screen flex flex-col bg-black">
+      <header className="sticky top-0 z-30 bg-black/90 backdrop-blur-xl border-b border-[#1a1a1a] px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-8">
+          <span className="text-[15px] font-semibold text-white tracking-tight">BuildMyBody</span>
+          <nav className="flex gap-6">
             {isCoach ? (
               <>
                 <NavLink to="/coach" end className={navClass}>Clients</NavLink>
@@ -56,11 +58,16 @@ function ProtectedLayout() {
                 <NavLink to="/" end className={navClass}>Dashboard</NavLink>
                 <NavLink to="/workouts" className={navClass}>Workouts</NavLink>
                 <NavLink to="/progress" className={navClass}>Progress</NavLink>
-                <NavLink to="/messages" className={({ isActive }) =>
-                  `px-4 py-2 rounded-lg font-medium transition-colors flex items-center ${
-                    isActive ? 'bg-brand-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                  }`
-                }>
+                <NavLink
+                  to="/messages"
+                  className={({ isActive }) =>
+                    `text-[13px] font-medium pb-0.5 border-b transition-all duration-200 flex items-center ${
+                      isActive
+                        ? 'text-white border-white'
+                        : 'text-[#555] border-transparent hover:text-[#aaa]'
+                    }`
+                  }
+                >
                   Messages<UnreadBadge count={unread} />
                 </NavLink>
               </>
@@ -69,7 +76,7 @@ function ProtectedLayout() {
         </div>
         <button
           onClick={logout}
-          className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
+          className="text-[#444] hover:text-[#aaa] text-[13px] transition-colors duration-200"
         >
           Sign Out
         </button>
@@ -109,8 +116,8 @@ export default function App() {
 
   if (user === undefined) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-gray-500 text-sm">Loading…</div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-[#333] text-sm">Loading…</div>
       </div>
     );
   }

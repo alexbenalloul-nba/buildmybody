@@ -14,6 +14,24 @@ function levelLabel(total) {
   return `🌱 Level ${level}`;
 }
 
+function SkeletonCard() {
+  return (
+    <div className="bg-[#080808] border border-[#161616] rounded-xl px-5 py-4 animate-pulse">
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <div className="h-3 w-32 bg-[#1a1a1a] rounded-full" />
+          <div className="h-2 w-44 bg-[#111] rounded-full" />
+        </div>
+        <div className="flex gap-8">
+          <div className="h-3 w-10 bg-[#1a1a1a] rounded-full" />
+          <div className="h-3 w-10 bg-[#1a1a1a] rounded-full" />
+          <div className="h-3 w-16 bg-[#1a1a1a] rounded-full" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CoachDashboard() {
   const [clients, setClients] = useState(null);
 
@@ -23,48 +41,81 @@ export default function CoachDashboard() {
 
   return (
     <div className="space-y-8">
+      {/* Heading */}
       <div>
-        <h1 className="text-3xl font-bold">Clients</h1>
-        <p className="text-gray-400 mt-1">Overview of all your clients</p>
+        <h1 className="text-3xl font-bold tracking-tight text-white">Clients</h1>
+        <p className="text-[#555] mt-1 text-sm">Overview of all your clients</p>
       </div>
 
+      {/* States */}
       {clients === null ? (
-        <p className="text-gray-500">Loading…</p>
+        <div className="space-y-2">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       ) : clients.length === 0 ? (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center">
-          <p className="text-gray-400">No clients have signed up yet.</p>
-          <p className="text-gray-500 text-sm mt-1">Share the app link so clients can create an account.</p>
+        <div className="border border-dashed border-[#1e1e1e] rounded-2xl p-14 text-center">
+          <div className="w-10 h-10 rounded-full border border-[#1e1e1e] flex items-center justify-center mx-auto mb-4">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <line x1="19" y1="8" x2="19" y2="14" />
+              <line x1="22" y1="11" x2="16" y2="11" />
+            </svg>
+          </div>
+          <p className="text-[#666] font-medium text-sm">No clients yet</p>
+          <p className="text-[#333] text-xs mt-1 max-w-xs mx-auto">
+            Share the app link so clients can create an account.
+          </p>
         </div>
       ) : (
-        <ul className="space-y-3">
+        <ul className="space-y-2">
           {clients.map((client) => (
             <li key={client.id}>
               <Link
                 to={`/coach/clients/${client.id}`}
-                className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-5 py-4 hover:border-brand-600 transition-colors"
+                className="flex items-center justify-between bg-[#080808] border border-[#161616] rounded-xl px-5 py-4 hover:bg-[#0e0e0e] hover:border-[#242424] transition-all duration-200 group"
               >
+                {/* Client info */}
                 <div>
-                  <p className="font-medium text-white">{client.name || client.email}</p>
+                  <p className="font-medium text-white text-sm">
+                    {client.name || client.email}
+                  </p>
                   {client.name && (
-                    <p className="text-gray-500 text-sm">{client.email}</p>
+                    <p className="text-[#444] text-xs mt-0.5">{client.email}</p>
                   )}
                 </div>
-                <div className="flex items-center gap-6 text-sm text-right">
+
+                {/* Stats + chevron */}
+                <div className="flex items-center gap-8 text-right">
                   <div>
-                    <p className="text-gray-400">Workouts</p>
-                    <p className="text-white font-semibold">{client.total_workouts}</p>
+                    <p className="text-[#444] text-xs mb-0.5">Workouts</p>
+                    <p className="text-white font-semibold text-sm">{client.total_workouts}</p>
                   </div>
                   <div>
-                    <p className="text-gray-400">Level</p>
-                    <p className="text-white font-semibold">{levelLabel(client.total_workouts)}</p>
+                    <p className="text-[#444] text-xs mb-0.5">Level</p>
+                    <p className="text-white font-semibold text-sm">{levelLabel(client.total_workouts)}</p>
                   </div>
                   <div>
-                    <p className="text-gray-400">Last workout</p>
-                    <p className="text-white font-semibold">
+                    <p className="text-[#444] text-xs mb-0.5">Last workout</p>
+                    <p className="text-white font-semibold text-sm">
                       {client.last_workout_date || '—'}
                     </p>
                   </div>
-                  <span className="text-gray-600">→</span>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#2a2a2a"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="group-hover:stroke-[#555] transition-colors duration-200 flex-shrink-0"
+                  >
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
                 </div>
               </Link>
             </li>
