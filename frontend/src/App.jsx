@@ -8,7 +8,6 @@ import Workouts from './pages/Workouts';
 import WorkoutDetail from './pages/WorkoutDetail';
 import Progress from './pages/Progress';
 import CoachDashboard from './pages/CoachDashboard';
-import AdminDashboard from './pages/AdminDashboard';
 import ClientProfile from './pages/ClientProfile';
 import Messages from './pages/Messages';
 
@@ -52,7 +51,6 @@ function ProtectedLayout() {
             {isCoach ? (
               <>
                 <NavLink to="/coach" end className={navClass}>Clients</NavLink>
-                <NavLink to="/admin" className={navClass}>Admin</NavLink>
                 <NavLink to="/" end className={navClass}>My Workouts</NavLink>
               </>
             ) : (
@@ -89,7 +87,6 @@ function ProtectedLayout() {
           {isCoach ? (
             <>
               <Route path="/coach" element={<CoachDashboard />} />
-              <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/coach/clients/:id" element={<ClientProfile />} />
               <Route path="/" element={<Dashboard />} />
               <Route path="/workouts" element={<Workouts />} />
