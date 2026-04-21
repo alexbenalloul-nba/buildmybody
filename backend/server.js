@@ -11,44 +11,53 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://buildmybody.up.railway.app';
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || `${BACKEND_URL}/api/auth/google/callback`;
-const COACH_EMAIL = process.env.COACH_EMAIL ? process.env.COACH_EMAIL.toLowerCase() : null;
+// ── Config ────────────────────────────────────────────────────────────────────
 
-// If COACH_EMAIL is set, ensure that user always has the coach role (handles existing accounts)
+const isProd           = process.env.NODE_ENV === 'production';
+const JWT_SECRET       = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+const FRONTEND_URL     = process.env.FRONTEND_URL || 'https://buildmybody.up.railway.app';
+const BACKEND_URL      = process.env.BACKEND_URL  || 'http://localhost:3001';
+const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID     || '';
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
+const GOOGLE_REDIRECT_URI  = process.env.GOOGLE_REDIRECT_URI  || `${BACKEND_URL}/api/auth/google/callback`;
+const COACH_EMAIL      = process.env.COACH_EMAIL ? process.env.COACH_EMAIL.toLowerCase() : null;
+
+// Ensure the coach email always has the coach role (handles pre-existing accounts).
 if (COACH_EMAIL) {
   db.prepare("UPDATE users SET role = 'coach' WHERE email = ? AND role != 'coach'").run(COACH_EMAIL);
 }
 
-// CORS only needed for local dev (Vite runs on a different port)
-const corsOptions = {
-  origin: 'http://localhost:5173',
-  credentials: true,
-  optionsSuccessStatus: 200,
-};
-app.options('*', cors(corsOptions));
-app.use(cors(corsOptions));
-app.use(express.json());
+// ── Middleware ────────────────────────────────────────────────────────────────
+
+// CORS is only relevant in local dev where Vite (port 5173) and Express (port 3001)
+// are on different origins. In production everything is same-origin, so skip it.
+if (!isProd) {
+  const corsOptions = {
+    origin: 'http://localhost:5173',
+    credentials: true,
+    optionsSuccessStatus: 200,
+  };
+  app.options('*', cors(corsOptions));
+  app.use(cors(corsOptions));
+}
+
+app.use(express.json({ limit: '1mb' })); // explicit body-size cap
 app.use(cookieParser());
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const isProd = process.env.NODE_ENV === 'production';
-
+// Issues a signed JWT stored in an httpOnly cookie (not accessible to JS).
 function issueToken(res, userId) {
   const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '7d' });
   res.cookie('token', token, {
     httpOnly: true,
     secure: isProd,
-    sameSite: 'lax',
+    sameSite: isProd ? 'none' : 'lax', // 'none' required for cross-site in prod (Railway)
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 }
 
+// Verifies the JWT cookie and attaches userId to the request.
 function requireAuth(req, res, next) {
   const token = req.cookies?.token;
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
@@ -61,43 +70,82 @@ function requireAuth(req, res, next) {
   }
 }
 
+// Checks that the authenticated user has the 'coach' role.
 function requireCoach(req, res, next) {
   const user = db.prepare('SELECT role FROM users WHERE id = ?').get(req.userId);
   if (!user || user.role !== 'coach') return res.status(403).json({ error: 'Forbidden' });
   next();
 }
 
+// Returns the role that should be assigned to this email on account creation.
 function roleForEmail(email) {
   return COACH_EMAIL && email.toLowerCase() === COACH_EMAIL ? 'coach' : 'client';
 }
+
+// Safely parse an integer param — returns null instead of NaN on bad input.
+function parseId(str) {
+  const n = parseInt(str, 10);
+  return Number.isFinite(n) ? n : null;
+}
+
+// Reusable helper that parses exercises JSON for workout detail endpoints.
+function parseExercises(workoutId) {
+  return db.prepare('SELECT * FROM exercises WHERE workout_id = ?')
+    .all(workoutId)
+    .map((ex) => ({ ...ex, sets_data: ex.sets_data ? JSON.parse(ex.sets_data) : [] }));
+}
+
+// Transaction: insert a workout + its exercises atomically.
+// If any exercise insert fails the entire workout is rolled back.
+const saveWorkoutExercises = db.transaction((workoutId, exercises) => {
+  db.prepare('DELETE FROM exercises WHERE workout_id = ?').run(workoutId);
+  const insert = db.prepare(
+    'INSERT INTO exercises (workout_id, name, sets_data, duration_minutes, notes) VALUES (?, ?, ?, ?, ?)'
+  );
+  for (const ex of exercises) {
+    insert.run(workoutId, ex.name, JSON.stringify(ex.sets_data || []), ex.duration_minutes || null, ex.notes || null);
+  }
+});
 
 // ── Auth Routes ───────────────────────────────────────────────────────────────
 
 app.post('/api/auth/register', async (req, res) => {
   const { email, password, name } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
-  if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email.toLowerCase());
+  if (!email || !password)        return res.status(400).json({ error: 'Email and password required' });
+  if (password.length < 6)        return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  if (typeof email !== 'string')  return res.status(400).json({ error: 'Invalid email' });
+
+  const normalizedEmail = email.toLowerCase().trim();
+  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(normalizedEmail);
   if (existing) return res.status(409).json({ error: 'Email already registered' });
-  const hash = await bcrypt.hash(password, 12);
-  const role = roleForEmail(email);
-  const result = db.prepare('INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)').run(email.toLowerCase(), hash, name || null, role);
+
+  const hash   = await bcrypt.hash(password, 12);
+  const role   = roleForEmail(normalizedEmail);
+  const result = db.prepare('INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)')
+    .run(normalizedEmail, hash, name?.trim() || null, role);
+
   issueToken(res, result.lastInsertRowid);
-  res.status(201).json({ id: result.lastInsertRowid, email: email.toLowerCase(), name, role });
+  res.status(201).json({ id: result.lastInsertRowid, email: normalizedEmail, name: name?.trim() || null, role });
 });
 
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
-  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase());
+
+  // Only select the columns we actually need — never expose password_hash in a response
+  const user = db.prepare('SELECT id, email, name, role, password_hash FROM users WHERE email = ?')
+    .get(email.toLowerCase().trim());
   if (!user || !user.password_hash) return res.status(401).json({ error: 'Invalid credentials' });
+
   const ok = await bcrypt.compare(password, user.password_hash);
   if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
+
   issueToken(res, user.id);
   res.json({ id: user.id, email: user.email, name: user.name, role: user.role || 'client' });
 });
 
 app.post('/api/auth/logout', (req, res) => {
+  // Cookie attributes must match those set in issueToken so the browser removes it
   res.clearCookie('token', { httpOnly: true, secure: isProd, sameSite: isProd ? 'none' : 'lax' });
   res.json({ success: true });
 });
@@ -113,11 +161,11 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
 app.get('/api/auth/google', (req, res) => {
   if (!GOOGLE_CLIENT_ID) return res.status(501).json({ error: 'Google OAuth not configured' });
   const params = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: GOOGLE_REDIRECT_URI,
+    client_id:     GOOGLE_CLIENT_ID,
+    redirect_uri:  GOOGLE_REDIRECT_URI,
     response_type: 'code',
-    scope: 'openid email profile',
-    access_type: 'offline',
+    scope:         'openid email profile',
+    access_type:   'offline',
   });
   res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
 });
@@ -125,37 +173,45 @@ app.get('/api/auth/google', (req, res) => {
 app.get('/api/auth/google/callback', async (req, res) => {
   const { code, error } = req.query;
   if (error || !code) return res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
+
   try {
+    // Exchange the authorization code for an access token
     const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         code,
-        client_id: GOOGLE_CLIENT_ID,
+        client_id:     GOOGLE_CLIENT_ID,
         client_secret: GOOGLE_CLIENT_SECRET,
-        redirect_uri: GOOGLE_REDIRECT_URI,
-        grant_type: 'authorization_code',
+        redirect_uri:  GOOGLE_REDIRECT_URI,
+        grant_type:    'authorization_code',
       }),
     });
     const tokenData = await tokenRes.json();
-    if (!tokenData.access_token) throw new Error('No access token');
+    if (!tokenData.access_token) throw new Error('No access token from Google');
 
+    // Fetch the user's profile from Google
     const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
     });
     const gUser = await userRes.json();
+    if (!gUser.email) throw new Error('No email returned from Google');
 
+    // Find or create a local user record
     let user = db.prepare('SELECT * FROM users WHERE google_id = ?').get(gUser.sub);
     if (!user) {
+      // Maybe they registered with email/password first — link the Google ID
       user = db.prepare('SELECT * FROM users WHERE email = ?').get(gUser.email);
       if (user) {
         db.prepare('UPDATE users SET google_id = ? WHERE id = ?').run(gUser.sub, user.id);
       } else {
         const role = roleForEmail(gUser.email);
-        const r = db.prepare('INSERT INTO users (email, google_id, name, role) VALUES (?, ?, ?, ?)').run(gUser.email, gUser.sub, gUser.name, role);
+        const r = db.prepare('INSERT INTO users (email, google_id, name, role) VALUES (?, ?, ?, ?)')
+          .run(gUser.email, gUser.sub, gUser.name, role);
         user = { id: r.lastInsertRowid };
       }
     }
+
     issueToken(res, user.id);
     res.redirect(FRONTEND_URL);
   } catch (err) {
@@ -179,46 +235,44 @@ app.get('/api/workouts', requireAuth, (req, res) => {
 });
 
 app.get('/api/workouts/:id', requireAuth, (req, res) => {
-  const workout = db.prepare('SELECT * FROM workouts WHERE id = ? AND user_id = ?').get(req.params.id, req.userId);
+  const workout = db.prepare('SELECT * FROM workouts WHERE id = ? AND user_id = ?')
+    .get(req.params.id, req.userId);
   if (!workout) return res.status(404).json({ error: 'Not found' });
-  const exercises = db.prepare('SELECT * FROM exercises WHERE workout_id = ?').all(req.params.id);
-  const parsed = exercises.map((ex) => ({
-    ...ex,
-    sets_data: ex.sets_data ? JSON.parse(ex.sets_data) : [],
-  }));
-  res.json({ ...workout, exercises: parsed });
+  res.json({ ...workout, exercises: parseExercises(req.params.id) });
 });
 
 app.post('/api/workouts', requireAuth, (req, res) => {
   const { name, date, notes, exercises = [] } = req.body;
-  const result = db.prepare('INSERT INTO workouts (user_id, name, date, notes) VALUES (?, ?, ?, ?)').run(req.userId, name, date, notes);
-  const workoutId = result.lastInsertRowid;
-  const insertExercise = db.prepare(
-    'INSERT INTO exercises (workout_id, name, sets_data, duration_minutes, notes) VALUES (?, ?, ?, ?, ?)'
-  );
-  for (const ex of exercises) {
-    insertExercise.run(workoutId, ex.name, JSON.stringify(ex.sets_data || []), ex.duration_minutes || null, ex.notes || null);
-  }
-  res.status(201).json({ id: workoutId });
+  if (!name?.trim()) return res.status(400).json({ error: 'Workout name is required' });
+  if (!date)         return res.status(400).json({ error: 'Workout date is required' });
+
+  // Insert the workout, then atomically insert all exercises
+  const result = db.prepare('INSERT INTO workouts (user_id, name, date, notes) VALUES (?, ?, ?, ?)')
+    .run(req.userId, name.trim(), date, notes?.trim() || null);
+  saveWorkoutExercises(result.lastInsertRowid, exercises);
+
+  res.status(201).json({ id: result.lastInsertRowid });
 });
 
 app.put('/api/workouts/:id', requireAuth, (req, res) => {
-  const workout = db.prepare('SELECT id FROM workouts WHERE id = ? AND user_id = ?').get(req.params.id, req.userId);
+  const workout = db.prepare('SELECT id FROM workouts WHERE id = ? AND user_id = ?')
+    .get(req.params.id, req.userId);
   if (!workout) return res.status(404).json({ error: 'Not found' });
+
   const { name, date, notes, exercises = [] } = req.body;
-  db.prepare('UPDATE workouts SET name = ?, date = ?, notes = ? WHERE id = ?').run(name, date, notes, req.params.id);
-  db.prepare('DELETE FROM exercises WHERE workout_id = ?').run(req.params.id);
-  const insertExercise = db.prepare(
-    'INSERT INTO exercises (workout_id, name, sets_data, duration_minutes, notes) VALUES (?, ?, ?, ?, ?)'
-  );
-  for (const ex of exercises) {
-    insertExercise.run(req.params.id, ex.name, JSON.stringify(ex.sets_data || []), ex.duration_minutes || null, ex.notes || null);
-  }
+  if (!name?.trim()) return res.status(400).json({ error: 'Workout name is required' });
+  if (!date)         return res.status(400).json({ error: 'Workout date is required' });
+
+  db.prepare('UPDATE workouts SET name = ?, date = ?, notes = ? WHERE id = ?')
+    .run(name.trim(), date, notes?.trim() || null, req.params.id);
+  saveWorkoutExercises(req.params.id, exercises);
+
   res.json({ success: true });
 });
 
 app.delete('/api/workouts/:id', requireAuth, (req, res) => {
-  const workout = db.prepare('SELECT id FROM workouts WHERE id = ? AND user_id = ?').get(req.params.id, req.userId);
+  const workout = db.prepare('SELECT id FROM workouts WHERE id = ? AND user_id = ?')
+    .get(req.params.id, req.userId);
   if (!workout) return res.status(404).json({ error: 'Not found' });
   db.prepare('DELETE FROM workouts WHERE id = ?').run(req.params.id);
   res.json({ success: true });
@@ -227,20 +281,22 @@ app.delete('/api/workouts/:id', requireAuth, (req, res) => {
 // ── Stats ─────────────────────────────────────────────────────────────────────
 
 app.get('/api/stats', requireAuth, (req, res) => {
-  const totalWorkouts = db.prepare('SELECT COUNT(*) as count FROM workouts WHERE user_id = ?').get(req.userId).count;
-  const recentWorkouts = db.prepare('SELECT * FROM workouts WHERE user_id = ? ORDER BY date DESC LIMIT 5').all(req.userId);
+  const { count: totalWorkouts } = db.prepare('SELECT COUNT(*) as count FROM workouts WHERE user_id = ?')
+    .get(req.userId);
+  const recentWorkouts = db.prepare('SELECT * FROM workouts WHERE user_id = ? ORDER BY date DESC LIMIT 5')
+    .all(req.userId);
   res.json({ totalWorkouts, recentWorkouts });
 });
 
 // ── Coach Routes ──────────────────────────────────────────────────────────────
 
-// List all clients with stats
+// List all clients with aggregated stats
 app.get('/api/coach/clients', requireAuth, requireCoach, (req, res) => {
   const clients = db.prepare(`
     SELECT
       u.id, u.email, u.name, u.created_at,
-      COUNT(w.id) as total_workouts,
-      MAX(w.date) as last_workout_date
+      COUNT(w.id)  as total_workouts,
+      MAX(w.date)  as last_workout_date
     FROM users u
     LEFT JOIN workouts w ON w.user_id = u.id
     WHERE u.role = 'client'
@@ -250,10 +306,12 @@ app.get('/api/coach/clients', requireAuth, requireCoach, (req, res) => {
   res.json(clients);
 });
 
-// Get a client's full profile + all workouts
+// Get a single client's full profile + their workout list
 app.get('/api/coach/clients/:id', requireAuth, requireCoach, (req, res) => {
-  const client = db.prepare('SELECT id, email, name, created_at FROM users WHERE id = ? AND role = ?').get(req.params.id, 'client');
+  const client = db.prepare('SELECT id, email, name, created_at FROM users WHERE id = ? AND role = ?')
+    .get(req.params.id, 'client');
   if (!client) return res.status(404).json({ error: 'Client not found' });
+
   const workouts = db.prepare(`
     SELECT w.*, COUNT(e.id) as exercise_count
     FROM workouts w
@@ -262,30 +320,33 @@ app.get('/api/coach/clients/:id', requireAuth, requireCoach, (req, res) => {
     GROUP BY w.id
     ORDER BY w.date DESC
   `).all(req.params.id);
-  const totalWorkouts = workouts.length;
-  res.json({ ...client, workouts, totalWorkouts });
+
+  res.json({ ...client, workouts, totalWorkouts: workouts.length });
 });
 
-// Get a specific workout for a client (coach view)
+// Get a specific workout for a client (coach read-only view)
 app.get('/api/coach/clients/:clientId/workouts/:workoutId', requireAuth, requireCoach, (req, res) => {
-  const workout = db.prepare('SELECT * FROM workouts WHERE id = ? AND user_id = ?').get(req.params.workoutId, req.params.clientId);
+  const workout = db.prepare('SELECT * FROM workouts WHERE id = ? AND user_id = ?')
+    .get(req.params.workoutId, req.params.clientId);
   if (!workout) return res.status(404).json({ error: 'Not found' });
-  const exercises = db.prepare('SELECT * FROM exercises WHERE workout_id = ?').all(req.params.workoutId);
-  const parsed = exercises.map((ex) => ({ ...ex, sets_data: ex.sets_data ? JSON.parse(ex.sets_data) : [] }));
-  res.json({ ...workout, exercises: parsed });
+  res.json({ ...workout, exercises: parseExercises(req.params.workoutId) });
 });
 
 // ── Messages ──────────────────────────────────────────────────────────────────
 
-// Get unread message count for current user
+// Get unread message count for the current user (polled every 30s by the client nav)
 app.get('/api/messages/unread-count', requireAuth, (req, res) => {
-  const count = db.prepare('SELECT COUNT(*) as count FROM messages WHERE receiver_id = ? AND read = 0').get(req.userId).count;
+  const { count } = db.prepare('SELECT COUNT(*) as count FROM messages WHERE receiver_id = ? AND read = 0')
+    .get(req.userId);
   res.json({ count });
 });
 
-// Get message thread between current user and another user
+// Get the full message thread between the current user and another user.
+// Also marks all incoming messages as read in the same request.
 app.get('/api/messages/:userId', requireAuth, (req, res) => {
-  const otherId = parseInt(req.params.userId);
+  const otherId = parseId(req.params.userId);
+  if (!otherId) return res.status(400).json({ error: 'Invalid user id' });
+
   const messages = db.prepare(`
     SELECT m.*, u.name as sender_name, u.email as sender_email
     FROM messages m
@@ -294,29 +355,47 @@ app.get('/api/messages/:userId', requireAuth, (req, res) => {
        OR (m.sender_id = ? AND m.receiver_id = ?)
     ORDER BY m.created_at ASC
   `).all(req.userId, otherId, otherId, req.userId);
-  // Mark messages sent to current user as read
-  db.prepare('UPDATE messages SET read = 1 WHERE sender_id = ? AND receiver_id = ? AND read = 0').run(otherId, req.userId);
+
+  // Mark messages from the other person as read now that the user has seen them
+  db.prepare('UPDATE messages SET read = 1 WHERE sender_id = ? AND receiver_id = ? AND read = 0')
+    .run(otherId, req.userId);
+
   res.json(messages);
 });
 
-// Send a message to another user
+// Send a message to another user.
+// Only coach ↔ client pairs are permitted.
 app.post('/api/messages/:userId', requireAuth, (req, res) => {
   const { content } = req.body;
   if (!content || !content.trim()) return res.status(400).json({ error: 'Message content required' });
-  const receiverId = parseInt(req.params.userId);
-  // Only allow coach↔client messaging (coach to client, or client to coach)
-  const sender = db.prepare('SELECT role FROM users WHERE id = ?').get(req.userId);
+  if (content.length > 2000)       return res.status(400).json({ error: 'Message too long (max 2000 characters)' });
+
+  const receiverId = parseId(req.params.userId);
+  if (!receiverId) return res.status(400).json({ error: 'Invalid user id' });
+
+  const sender   = db.prepare('SELECT role FROM users WHERE id = ?').get(req.userId);
   const receiver = db.prepare('SELECT id, role FROM users WHERE id = ?').get(receiverId);
   if (!receiver) return res.status(404).json({ error: 'User not found' });
-  const validPair = (sender.role === 'coach' && receiver.role === 'client') ||
-                    (sender.role === 'client' && receiver.role === 'coach');
+
+  const validPair =
+    (sender.role === 'coach' && receiver.role === 'client') ||
+    (sender.role === 'client' && receiver.role === 'coach');
   if (!validPair) return res.status(403).json({ error: 'Can only message between coach and client' });
-  const result = db.prepare('INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)').run(req.userId, receiverId, content.trim());
-  const msg = db.prepare('SELECT m.*, u.name as sender_name, u.email as sender_email FROM messages m JOIN users u ON u.id = m.sender_id WHERE m.id = ?').get(result.lastInsertRowid);
+
+  const result = db.prepare('INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)')
+    .run(req.userId, receiverId, content.trim());
+
+  const msg = db.prepare(`
+    SELECT m.*, u.name as sender_name, u.email as sender_email
+    FROM messages m
+    JOIN users u ON u.id = m.sender_id
+    WHERE m.id = ?
+  `).get(result.lastInsertRowid);
+
   res.status(201).json(msg);
 });
 
-// Get the coach user (for clients to know who to message)
+// Get the coach's public info (used by clients to know who to message)
 app.get('/api/coach', requireAuth, (req, res) => {
   if (!COACH_EMAIL) return res.status(404).json({ error: 'No coach configured' });
   const coach = db.prepare('SELECT id, name, email FROM users WHERE role = ?').get('coach');
@@ -328,9 +407,17 @@ app.get('/api/coach', requireAuth, (req, res) => {
 
 const distPath = join(__dirname, 'public');
 app.use(express.static(distPath));
-app.get('*', (req, res) => {
+
+// SPA fallback: send index.html for any non-API route so React Router can handle it.
+// We explicitly exclude /api/* so missing API endpoints return a JSON 404 instead of HTML.
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'Not found' });
+  }
   res.sendFile(join(distPath, 'index.html'));
 });
+
+// ── Start server ──────────────────────────────────────────────────────────────
 
 const PORT = process.env.PORT || 3001;
 const server = app.listen(PORT, '0.0.0.0', () => console.log(`Backend running on port ${PORT}`));

@@ -1,18 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
-
-const WORKOUTS_PER_LEVEL = 5;
-
-function levelLabel(total) {
-  const level = Math.floor(total / WORKOUTS_PER_LEVEL) + 1;
-  if (level >= 50) return `🏆 Level ${level}`;
-  if (level >= 30) return `💀 Level ${level}`;
-  if (level >= 20) return `🔥 Level ${level}`;
-  if (level >= 10) return `⚡ Level ${level}`;
-  if (level >= 5)  return `💪 Level ${level}`;
-  return `🌱 Level ${level}`;
-}
+import { levelLabel } from '../utils/levels';
 
 function SkeletonCard() {
   return (

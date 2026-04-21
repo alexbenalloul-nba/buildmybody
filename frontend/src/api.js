@@ -8,38 +8,48 @@ async function request(path, options = {}) {
     credentials: 'include',
     ...options,
   });
+
   if (!res.ok) {
-    const msg = await res.text().catch(() => res.statusText);
-    throw Object.assign(new Error(msg), { status: res.status });
+    // Try to extract the human-readable error message from the JSON body.
+    // The server always returns { error: "..." } on failures.
+    let message = res.statusText;
+    try {
+      const data = await res.json();
+      message = data.error || data.message || message;
+    } catch {
+      message = await res.text().catch(() => res.statusText);
+    }
+    throw Object.assign(new Error(message), { status: res.status });
   }
+
   return res.json();
 }
 
 export const api = {
   // Auth
   register: (data) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
-  login: (data) => request('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
-  logout: () => request('/auth/logout', { method: 'POST' }),
-  me: () => request('/auth/me'),
+  login:    (data) => request('/auth/login',    { method: 'POST', body: JSON.stringify(data) }),
+  logout:   ()     => request('/auth/logout',   { method: 'POST' }),
+  me:       ()     => request('/auth/me'),
 
   // Workouts
-  getWorkouts: () => request('/workouts'),
-  getWorkout: (id) => request(`/workouts/${id}`),
-  createWorkout: (data) => request('/workouts', { method: 'POST', body: JSON.stringify(data) }),
-  updateWorkout: (id, data) => request(`/workouts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  deleteWorkout: (id) => request(`/workouts/${id}`, { method: 'DELETE' }),
+  getWorkouts:    ()         => request('/workouts'),
+  getWorkout:     (id)       => request(`/workouts/${id}`),
+  createWorkout:  (data)     => request('/workouts',     { method: 'POST', body: JSON.stringify(data) }),
+  updateWorkout:  (id, data) => request(`/workouts/${id}`, { method: 'PUT',  body: JSON.stringify(data) }),
+  deleteWorkout:  (id)       => request(`/workouts/${id}`, { method: 'DELETE' }),
 
   // Stats
   getStats: () => request('/stats'),
 
   // Coach
-  getCoach: () => request('/coach'),
-  getClients: () => request('/coach/clients'),
-  getClient: (id) => request(`/coach/clients/${id}`),
-  getClientWorkout: (clientId, workoutId) => request(`/coach/clients/${clientId}/workouts/${workoutId}`),
+  getCoach:          ()                   => request('/coach'),
+  getClients:        ()                   => request('/coach/clients'),
+  getClient:         (id)                 => request(`/coach/clients/${id}`),
+  getClientWorkout:  (clientId, workoutId) => request(`/coach/clients/${clientId}/workouts/${workoutId}`),
 
   // Messages
-  getMessages: (userId) => request(`/messages/${userId}`),
-  sendMessage: (userId, content) => request(`/messages/${userId}`, { method: 'POST', body: JSON.stringify({ content }) }),
-  getUnreadCount: () => request('/messages/unread-count'),
+  getMessages:     (userId)          => request(`/messages/${userId}`),
+  sendMessage:     (userId, content) => request(`/messages/${userId}`, { method: 'POST', body: JSON.stringify({ content }) }),
+  getUnreadCount:  ()                => request('/messages/unread-count'),
 };

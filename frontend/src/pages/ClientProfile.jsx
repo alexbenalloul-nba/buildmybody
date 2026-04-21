@@ -1,18 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
-
-const WORKOUTS_PER_LEVEL = 5;
-
-function levelLabel(total) {
-  const level = Math.floor(total / WORKOUTS_PER_LEVEL) + 1;
-  if (level >= 50) return `🏆 Level ${level}`;
-  if (level >= 30) return `💀 Level ${level}`;
-  if (level >= 20) return `🔥 Level ${level}`;
-  if (level >= 10) return `⚡ Level ${level}`;
-  if (level >= 5)  return `💪 Level ${level}`;
-  return `🌱 Level ${level}`;
-}
+import { levelLabel, levelNumber, WORKOUTS_PER_LEVEL } from '../utils/levels';
 
 function WorkoutDetailModal({ clientId, workoutId, onClose }) {
   const [workout, setWorkout] = useState(null);
@@ -116,7 +105,7 @@ export default function ClientProfile() {
 
   if (!client) return <div className="text-gray-500">Loading…</div>;
 
-  const level = Math.floor(client.totalWorkouts / WORKOUTS_PER_LEVEL) + 1;
+  const level = levelNumber(client.totalWorkouts);
 
   return (
     <div className="space-y-8">

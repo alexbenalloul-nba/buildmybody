@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../AuthContext';
+import { WORKOUTS_PER_LEVEL, levelNumber, workoutsToNextLevel } from '../utils/levels';
 
 function StatCard({ label, value }) {
   return (
@@ -12,8 +13,6 @@ function StatCard({ label, value }) {
   );
 }
 
-const WORKOUTS_PER_LEVEL = 5;
-
 export default function Dashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
@@ -22,7 +21,7 @@ export default function Dashboard() {
     api.getStats().then(setStats).catch(console.error);
   }, []);
 
-  const level = stats ? Math.floor(stats.totalWorkouts / WORKOUTS_PER_LEVEL) + 1 : null;
+  const level = stats ? levelNumber(stats.totalWorkouts) : null;
 
   return (
     <div className="space-y-8">
@@ -36,7 +35,7 @@ export default function Dashboard() {
         <StatCard label="Current Level" value={level ? `Level ${level}` : null} />
         <StatCard
           label="To Next Level"
-          value={stats ? `${WORKOUTS_PER_LEVEL - (stats.totalWorkouts % WORKOUTS_PER_LEVEL)} workouts` : null}
+          value={stats ? `${workoutsToNextLevel(stats.totalWorkouts)} workouts` : null}
         />
       </div>
 
