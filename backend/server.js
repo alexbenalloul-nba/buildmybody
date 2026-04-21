@@ -39,6 +39,33 @@ app.use(cookieParser());
 
 const isProd = process.env.NODE_ENV === 'production';
 
+function getClientIp(req) {
+  return req.headers['x-forwarded-for']?.split(',')[0].trim() ||
+         req.headers['x-real-ip'] ||
+         req.socket.remoteAddress ||
+         'unknown';
+}
+
+async function getLocationFromIp(ip) {
+  // Skip geolocation for localhost
+  if (ip === '127.0.0.1' || ip === 'localhost' || ip === '::1') {
+    return { country: 'Localhost', city: 'Dev' };
+  }
+
+  try {
+    const res = await fetch(`https://ipapi.co/${ip}/json/`);
+    if (!res.ok) throw new Error('Geolocation failed');
+    const data = await res.json();
+    return {
+      country: data.country_name || 'Unknown',
+      city: data.city || 'Unknown',
+    };
+  } catch (err) {
+    console.error('Geolocation error:', err);
+    return { country: 'Unknown', city: 'Unknown' };
+  }
+}
+
 function issueToken(res, userId) {
   const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '7d' });
   res.cookie('token', token, {
@@ -81,7 +108,20 @@ app.post('/api/auth/register', async (req, res) => {
   if (existing) return res.status(409).json({ error: 'Email already registered' });
   const hash = await bcrypt.hash(password, 12);
   const role = roleForEmail(email);
-  const result = db.prepare('INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)').run(email.toLowerCase(), hash, name || null, role);
+
+  // Capture IP and location
+  const ipAddress = getClientIp(req);
+  const location = await getLocationFromIp(ipAddress);
+
+  const result = db.prepare('INSERT INTO users (email, password_hash, name, role, ip_address, country, city) VALUES (?, ?, ?, ?, ?, ?, ?)').run(
+    email.toLowerCase(),
+    hash,
+    name || null,
+    role,
+    ipAddress,
+    location.country,
+    location.city
+  );
   issueToken(res, result.lastInsertRowid);
   res.status(201).json({ id: result.lastInsertRowid, email: email.toLowerCase(), name, role });
 });
@@ -152,7 +192,17 @@ app.get('/api/auth/google/callback', async (req, res) => {
         db.prepare('UPDATE users SET google_id = ? WHERE id = ?').run(gUser.sub, user.id);
       } else {
         const role = roleForEmail(gUser.email);
-        const r = db.prepare('INSERT INTO users (email, google_id, name, role) VALUES (?, ?, ?, ?)').run(gUser.email, gUser.sub, gUser.name, role);
+        const ipAddress = getClientIp(req);
+        const location = await getLocationFromIp(ipAddress);
+        const r = db.prepare('INSERT INTO users (email, google_id, name, role, ip_address, country, city) VALUES (?, ?, ?, ?, ?, ?, ?)').run(
+          gUser.email,
+          gUser.sub,
+          gUser.name,
+          role,
+          ipAddress,
+          location.country,
+          location.city
+        );
         user = { id: r.lastInsertRowid };
       }
     }
@@ -322,6 +372,65 @@ app.get('/api/coach', requireAuth, (req, res) => {
   const coach = db.prepare('SELECT id, name, email FROM users WHERE role = ?').get('coach');
   if (!coach) return res.status(404).json({ error: 'Coach not found' });
   res.json(coach);
+});
+
+// ── Admin Routes ──────────────────────────────────────────────────────────────
+
+// Get all signups (admin only - coach only)
+app.get('/api/admin/signups', requireAuth, requireCoach, (req, res) => {
+  const signups = db.prepare(`
+    SELECT id, email, name, country, city, ip_address, created_at
+    FROM users
+    ORDER BY created_at DESC
+  `).all();
+  res.json(signups);
+});
+
+// Get database statistics (admin only - coach only)
+app.get('/api/admin/stats', requireAuth, requireCoach, (req, res) => {
+  const totalUsers = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
+  const totalClients = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'client'").get().count;
+  const totalWorkouts = db.prepare('SELECT COUNT(*) as count FROM workouts').get().count;
+  const totalExercises = db.prepare('SELECT COUNT(*) as count FROM exercises').get().count;
+
+  const usersByCountry = db.prepare(`
+    SELECT country, COUNT(*) as count
+    FROM users
+    WHERE country IS NOT NULL
+    GROUP BY country
+    ORDER BY count DESC
+    LIMIT 10
+  `).all();
+
+  res.json({
+    totalUsers,
+    totalClients,
+    totalWorkouts,
+    totalExercises,
+    usersByCountry,
+  });
+});
+
+// Export database as JSON (admin only - coach only)
+app.get('/api/admin/export', requireAuth, requireCoach, (req, res) => {
+  const users = db.prepare('SELECT * FROM users').all();
+  const workouts = db.prepare('SELECT * FROM workouts').all();
+  const exercises = db.prepare('SELECT * FROM exercises').all();
+  const measurements = db.prepare('SELECT * FROM measurements').all();
+  const messages = db.prepare('SELECT * FROM messages').all();
+
+  const exportData = {
+    exportedAt: new Date().toISOString(),
+    users,
+    workouts,
+    exercises,
+    measurements,
+    messages,
+  };
+
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Content-Disposition', 'attachment; filename=buildmybody-export.json');
+  res.json(exportData);
 });
 
 // ── Serve React frontend ──────────────────────────────────────────────────────

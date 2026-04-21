@@ -27,6 +27,9 @@ db.exec(`
     google_id TEXT UNIQUE,
     name TEXT,
     role TEXT NOT NULL DEFAULT 'client',
+    ip_address TEXT,
+    country TEXT,
+    city TEXT,
     created_at TEXT DEFAULT (datetime('now'))
   );
 
@@ -84,6 +87,11 @@ function addColumnIfMissing(table, column, def) {
 
 // Users: add role column
 addColumnIfMissing('users', 'role', "TEXT NOT NULL DEFAULT 'client'");
+
+// Users: add location tracking columns
+addColumnIfMissing('users', 'ip_address', 'TEXT');
+addColumnIfMissing('users', 'country', 'TEXT');
+addColumnIfMissing('users', 'city', 'TEXT');
 
 // Workouts: add user_id (nullable so old rows aren't broken)
 addColumnIfMissing('workouts', 'user_id', 'INTEGER REFERENCES users(id) ON DELETE CASCADE');
