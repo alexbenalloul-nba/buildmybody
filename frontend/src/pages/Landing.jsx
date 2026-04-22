@@ -248,20 +248,20 @@ export default function Landing() {
       </header>
 
       {/* ── Hero ── */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 pt-16 pb-12 text-center">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 pb-12 text-center" style={{ position: 'relative', paddingTop: '110px' }}>
+        {/* Floating emojis — absolutely positioned */}
+        <div className="select-none pointer-events-none" style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '110px' }}>
+          <span className="emoji-float-1" style={{ position: 'absolute', top: '20px', left: '28%', fontSize: '48px' }}>⚡</span>
+          <span className="emoji-float-2" style={{ position: 'absolute', top: '60px', left: '50%', transform: 'translateX(-50%)', fontSize: '48px' }}>🔥</span>
+          <span className="emoji-float-3" style={{ position: 'absolute', top: '10px', right: '26%', fontSize: '48px' }}>💪</span>
+        </div>
+
         {/* Eyebrow badge */}
         <div className="inline-flex items-center gap-2 bg-white/[0.05] border border-white/[0.08] rounded-full px-4 py-1.5 mb-10">
           <span className="w-1.5 h-1.5 rounded-full bg-white/60 inline-block" />
           <span className="text-[11px] text-[#888] tracking-widest uppercase font-medium">
             Now available
           </span>
-        </div>
-
-        {/* Floating emojis */}
-        <div className="flex items-end justify-center gap-14 mb-6 h-16 select-none pointer-events-none">
-          <span className="emoji-float-1" style={{ fontSize: '48px', marginBottom: '4px' }}>⚡</span>
-          <span className="emoji-float-2" style={{ fontSize: '48px', marginBottom: '0px' }}>🏋️</span>
-          <span className="emoji-float-3" style={{ fontSize: '48px', marginBottom: '8px' }}>💪</span>
         </div>
 
         {/* Headline */}
@@ -275,7 +275,7 @@ export default function Landing() {
         </p>
 
         {/* CTA buttons */}
-        <div className="flex flex-col sm:flex-row items-center gap-3 mb-20">
+        <div className="flex flex-col sm:flex-row items-center gap-3" style={{ marginBottom: '32px' }}>
           <button
             onClick={() => setModal('register')}
             className="px-7 py-3 bg-white text-black rounded-full font-medium text-sm hover:bg-[#e5e5e5] transition-all duration-200 min-w-[160px]"
@@ -290,7 +290,7 @@ export default function Landing() {
           </button>
         </div>
 
-        <AnatomyFigure className="max-w-sm mx-auto" />
+        <AnatomyFigure className="mx-auto" />
 
         {/* App mockup */}
         <div className="w-full max-w-[280px] mx-auto">

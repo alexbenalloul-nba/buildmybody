@@ -37,7 +37,7 @@ export default function AnatomyFigure({ className = '' }) {
         className="anatomy-figure"
         style={{
           filter: 'grayscale(1) brightness(0.55) contrast(1.5)',
-          width: '400px',
+          width: '280px',
           display: 'block',
           margin: '0 auto',
           mixBlendMode: 'screen',
