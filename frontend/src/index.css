@@ -8,3 +8,19 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+@keyframes floatEmoji1 {
+  0%, 100% { transform: translateY(0px) rotate(-5deg); }
+  50%       { transform: translateY(-14px) rotate(-5deg); }
+}
+@keyframes floatEmoji2 {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+@keyframes floatEmoji3 {
+  0%, 100% { transform: translateY(0px) rotate(5deg); }
+  50%       { transform: translateY(-16px) rotate(5deg); }
+}
+.emoji-float-1 { animation: floatEmoji1 4.2s ease-in-out infinite; }
+.emoji-float-2 { animation: floatEmoji2 5.0s ease-in-out 0.6s infinite; }
+.emoji-float-3 { animation: floatEmoji3 3.8s ease-in-out 1.2s infinite; }

@@ -2,54 +2,44 @@ import { useEffect, useRef } from 'react';
 
 const animationCss = `
   @keyframes musclePulse-hamstrings {
-    0%   { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
-    50%  { filter: drop-shadow(0 0 14px #FF7755); opacity: 1.0; }
-    100% { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
+    0%,100% { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.88; }
+    50%      { filter: drop-shadow(0 0 16px #FF7755); opacity: 1.0; }
   }
   @keyframes musclePulse-glutes {
-    0%   { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
-    50%  { filter: drop-shadow(0 0 12px #FF6644); opacity: 1.0; }
-    100% { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
+    0%,100% { filter: drop-shadow(0 0 3px #FF4422); opacity: 0.85; }
+    50%      { filter: drop-shadow(0 0 12px #FF6644); opacity: 1.0; }
   }
   @keyframes musclePulse-calves {
-    0%   { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
-    50%  { filter: drop-shadow(0 0 12px #FF6644); opacity: 1.0; }
-    100% { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
+    0%,100% { filter: drop-shadow(0 0 3px #FF4422); opacity: 0.85; }
+    50%      { filter: drop-shadow(0 0 12px #FF6644); opacity: 1.0; }
   }
   @keyframes musclePulse-soleus {
-    0%   { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
-    50%  { filter: drop-shadow(0 0 12px #FF6644); opacity: 1.0; }
-    100% { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
+    0%,100% { filter: drop-shadow(0 0 3px #FF4422); opacity: 0.82; }
+    50%      { filter: drop-shadow(0 0 10px #FF6644); opacity: 0.98; }
   }
   @keyframes musclePulse-erectors {
-    0%   { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
-    50%  { filter: drop-shadow(0 0 12px #FF6644); opacity: 1.0; }
-    100% { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
+    0%,100% { filter: drop-shadow(0 0 3px #FF4422); opacity: 0.85; }
+    50%      { filter: drop-shadow(0 0 12px #FF6644); opacity: 1.0; }
   }
   @keyframes musclePulse-lats {
-    0%   { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
-    50%  { filter: drop-shadow(0 0 12px #FF6644); opacity: 1.0; }
-    100% { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
+    0%,100% { filter: drop-shadow(0 0 3px #FF4422); opacity: 0.85; }
+    50%      { filter: drop-shadow(0 0 12px #FF6644); opacity: 1.0; }
   }
   @keyframes musclePulse-traps {
-    0%   { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
-    50%  { filter: drop-shadow(0 0 12px #FF6644); opacity: 1.0; }
-    100% { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
+    0%,100% { filter: drop-shadow(0 0 3px #FF4422); opacity: 0.85; }
+    50%      { filter: drop-shadow(0 0 12px #FF6644); opacity: 1.0; }
   }
   @keyframes musclePulse-reardelts {
-    0%   { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
-    50%  { filter: drop-shadow(0 0 12px #FF6644); opacity: 1.0; }
-    100% { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
+    0%,100% { filter: drop-shadow(0 0 3px #FF4422); opacity: 0.85; }
+    50%      { filter: drop-shadow(0 0 12px #FF6644); opacity: 1.0; }
   }
   @keyframes musclePulse-triceps {
-    0%   { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
-    50%  { filter: drop-shadow(0 0 12px #FF6644); opacity: 1.0; }
-    100% { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
+    0%,100% { filter: drop-shadow(0 0 3px #FF4422); opacity: 0.82; }
+    50%      { filter: drop-shadow(0 0 10px #FF6644); opacity: 0.98; }
   }
   @keyframes musclePulse-forearms {
-    0%   { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
-    50%  { filter: drop-shadow(0 0 12px #FF6644); opacity: 1.0; }
-    100% { filter: drop-shadow(0 0 4px #FF4422); opacity: 0.85; }
+    0%,100% { filter: drop-shadow(0 0 3px #FF4422); opacity: 0.80; }
+    50%      { filter: drop-shadow(0 0 10px #FF6644); opacity: 0.96; }
   }
   #hamstrings { animation: musclePulse-hamstrings 3.2s ease-in-out 0.0s infinite; }
   #glutes     { animation: musclePulse-glutes     4.1s ease-in-out 0.7s infinite; }
@@ -85,235 +75,434 @@ export default function AnatomyFigure({ className = '' }) {
         transition: 'opacity 1.2s ease, transform 1.2s ease',
       }}
     >
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 600" width="500" height="600">
-        <defs>
-          <radialGradient id="grad-hamstrings" cx="50%" cy="38%" r="56%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#FF7755" />
-            <stop offset="42%"  stopColor="#CC2200" />
-            <stop offset="100%" stopColor="#5a0000" />
-          </radialGradient>
-          <radialGradient id="grad-glutes" cx="50%" cy="36%" r="58%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#FF5533" />
-            <stop offset="48%"  stopColor="#BB1800" />
-            <stop offset="100%" stopColor="#600000" />
-          </radialGradient>
-          <radialGradient id="grad-calves" cx="50%" cy="34%" r="54%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#FF5533" />
-            <stop offset="45%"  stopColor="#CC2200" />
-            <stop offset="100%" stopColor="#5a0000" />
-          </radialGradient>
-          <radialGradient id="grad-soleus" cx="50%" cy="50%" r="52%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#EE4422" />
-            <stop offset="50%"  stopColor="#AA1500" />
-            <stop offset="100%" stopColor="#4a0000" />
-          </radialGradient>
-          <radialGradient id="grad-erectors" cx="50%" cy="40%" r="55%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#FF4422" />
-            <stop offset="50%"  stopColor="#CC2200" />
-            <stop offset="100%" stopColor="#5a0000" />
-          </radialGradient>
-          <radialGradient id="grad-lats" cx="44%" cy="38%" r="62%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#FF4422" />
-            <stop offset="48%"  stopColor="#BB1800" />
-            <stop offset="100%" stopColor="#580000" />
-          </radialGradient>
-          <radialGradient id="grad-traps" cx="50%" cy="36%" r="58%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#FF4422" />
-            <stop offset="46%"  stopColor="#CC2200" />
-            <stop offset="100%" stopColor="#5c0000" />
-          </radialGradient>
-          <radialGradient id="grad-reardelts" cx="50%" cy="44%" r="55%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#FF5533" />
-            <stop offset="48%"  stopColor="#CC2200" />
-            <stop offset="100%" stopColor="#5a0000" />
-          </radialGradient>
-          <radialGradient id="grad-triceps" cx="50%" cy="38%" r="55%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#FF4422" />
-            <stop offset="48%"  stopColor="#BB1800" />
-            <stop offset="100%" stopColor="#520000" />
-          </radialGradient>
-          <radialGradient id="grad-forearms" cx="50%" cy="38%" r="54%" gradientUnits="objectBoundingBox">
-            <stop offset="0%"   stopColor="#EE4422" />
-            <stop offset="48%"  stopColor="#AA1500" />
-            <stop offset="100%" stopColor="#4a0000" />
-          </radialGradient>
-        </defs>
+      {/* Flex centering wrapper */}
+      <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 500 600"
+          width="500"
+          height="600"
+          style={{ display: 'block', margin: '0 auto' }}
+        >
+          <defs>
+            <radialGradient id="grad-hamstrings" cx="50%" cy="38%" r="56%" gradientUnits="objectBoundingBox">
+              <stop offset="0%"   stopColor="#FF7755" />
+              <stop offset="42%"  stopColor="#CC2200" />
+              <stop offset="100%" stopColor="#5a0000" />
+            </radialGradient>
+            <radialGradient id="grad-glutes" cx="50%" cy="36%" r="58%" gradientUnits="objectBoundingBox">
+              <stop offset="0%"   stopColor="#FF5533" />
+              <stop offset="48%"  stopColor="#BB1800" />
+              <stop offset="100%" stopColor="#600000" />
+            </radialGradient>
+            <radialGradient id="grad-calves" cx="50%" cy="34%" r="54%" gradientUnits="objectBoundingBox">
+              <stop offset="0%"   stopColor="#FF5533" />
+              <stop offset="45%"  stopColor="#CC2200" />
+              <stop offset="100%" stopColor="#5a0000" />
+            </radialGradient>
+            <radialGradient id="grad-soleus" cx="50%" cy="50%" r="52%" gradientUnits="objectBoundingBox">
+              <stop offset="0%"   stopColor="#EE4422" />
+              <stop offset="50%"  stopColor="#AA1500" />
+              <stop offset="100%" stopColor="#4a0000" />
+            </radialGradient>
+            <radialGradient id="grad-erectors" cx="50%" cy="40%" r="55%" gradientUnits="objectBoundingBox">
+              <stop offset="0%"   stopColor="#FF4422" />
+              <stop offset="50%"  stopColor="#CC2200" />
+              <stop offset="100%" stopColor="#5a0000" />
+            </radialGradient>
+            <radialGradient id="grad-lats" cx="44%" cy="38%" r="62%" gradientUnits="objectBoundingBox">
+              <stop offset="0%"   stopColor="#FF4422" />
+              <stop offset="48%"  stopColor="#BB1800" />
+              <stop offset="100%" stopColor="#580000" />
+            </radialGradient>
+            <radialGradient id="grad-traps" cx="50%" cy="36%" r="58%" gradientUnits="objectBoundingBox">
+              <stop offset="0%"   stopColor="#FF4422" />
+              <stop offset="46%"  stopColor="#CC2200" />
+              <stop offset="100%" stopColor="#5c0000" />
+            </radialGradient>
+            <radialGradient id="grad-reardelts" cx="50%" cy="44%" r="55%" gradientUnits="objectBoundingBox">
+              <stop offset="0%"   stopColor="#FF5533" />
+              <stop offset="48%"  stopColor="#CC2200" />
+              <stop offset="100%" stopColor="#5a0000" />
+            </radialGradient>
+            <radialGradient id="grad-triceps" cx="50%" cy="38%" r="55%" gradientUnits="objectBoundingBox">
+              <stop offset="0%"   stopColor="#FF4422" />
+              <stop offset="48%"  stopColor="#BB1800" />
+              <stop offset="100%" stopColor="#520000" />
+            </radialGradient>
+            <radialGradient id="grad-forearms" cx="50%" cy="38%" r="54%" gradientUnits="objectBoundingBox">
+              <stop offset="0%"   stopColor="#EE4422" />
+              <stop offset="48%"  stopColor="#AA1500" />
+              <stop offset="100%" stopColor="#4a0000" />
+            </radialGradient>
+          </defs>
 
-        <style>{animationCss}</style>
+          <style>{animationCss}</style>
 
-        {/* LAYER 1 — BONE STRUCTURE */}
-        <g id="bones" stroke="#E8E8E8" fill="none" strokeWidth="1.5" opacity="0.4">
-          <path d="M 250,118 C 251,142 253,172 255,205 C 257,240 256,274 253,308 C 251,332 250,348 250,364" />
-          <ellipse cx="250" cy="127" rx="5" ry="6" transform="rotate(-1 250 127)" />
-          <ellipse cx="251" cy="143" rx="5" ry="6" transform="rotate(-1 251 143)" />
-          <ellipse cx="252" cy="159" rx="5" ry="6" transform="rotate(-1 252 159)" />
-          <ellipse cx="252" cy="175" rx="5" ry="6" transform="rotate(-1 252 175)" />
-          <ellipse cx="253" cy="191" rx="5" ry="6" transform="rotate(-2 253 191)" />
-          <ellipse cx="253" cy="207" rx="5" ry="6" transform="rotate(-2 253 207)" />
-          <ellipse cx="254" cy="223" rx="5" ry="6" transform="rotate(-2 254 223)" />
-          <ellipse cx="254" cy="239" rx="5" ry="6" transform="rotate(-2 254 239)" />
-          <ellipse cx="254" cy="255" rx="5" ry="6" transform="rotate(-2 254 255)" />
-          <ellipse cx="253" cy="271" rx="5" ry="6" transform="rotate(-1 253 271)" />
-          <ellipse cx="253" cy="287" rx="5" ry="6" transform="rotate(-1 253 287)" />
-          <ellipse cx="252" cy="303" rx="5" ry="6" />
-          <ellipse cx="251" cy="319" rx="5" ry="6" />
-          <ellipse cx="250" cy="334" rx="5" ry="6" />
-          <ellipse cx="250" cy="350" rx="5" ry="5" />
-          <path d="M 192,368 C 198,348 222,337 250,337 C 278,337 302,348 308,368 C 313,383 304,400 288,404 C 270,408 230,408 212,404 C 196,400 187,383 192,368 Z" />
-          <path d="M 280,378 C 284,402 292,428 298,455" />
-          <path d="M 220,378 C 216,402 208,428 202,455" />
-          <path d="M 297,458 C 299,485 303,514 306,542" />
-          <path d="M 304,460 C 307,487 312,516 315,543" />
-          <path d="M 203,458 C 201,485 197,514 194,542" />
-          <path d="M 196,460 C 193,487 188,516 185,543" />
-          <ellipse cx="302" cy="560" rx="9" ry="5" />
-          <ellipse cx="314" cy="557" rx="7" ry="4" />
-          <ellipse cx="295" cy="570" rx="7" ry="4" />
-          <ellipse cx="308" cy="570" rx="5" ry="3" />
-          <ellipse cx="198" cy="560" rx="9" ry="5" />
-          <ellipse cx="186" cy="557" rx="7" ry="4" />
-          <ellipse cx="205" cy="570" rx="7" ry="4" />
-          <ellipse cx="192" cy="570" rx="5" ry="3" />
-          <path d="M 256,163 C 268,158 290,155 312,164" />
-          <path d="M 256,179 C 270,173 296,169 320,179" />
-          <path d="M 256,195 C 271,188 299,184 325,195" />
-          <path d="M 255,211 C 271,203 301,199 328,210" />
-          <path d="M 255,227 C 271,218 302,214 328,225" />
-          <path d="M 254,243 C 270,233 300,228 325,239" />
-          <path d="M 254,259 C 269,249 297,243 319,253" />
-          <path d="M 244,163 C 232,158 210,155 188,164" />
-          <path d="M 244,179 C 230,173 204,169 180,179" />
-          <path d="M 244,195 C 229,188 201,184 175,195" />
-          <path d="M 245,211 C 229,203 199,199 172,210" />
-          <path d="M 245,227 C 229,218 198,214 172,225" />
-          <path d="M 246,243 C 230,233 200,228 175,239" />
-          <path d="M 246,259 C 231,249 203,243 181,253" />
-          <path d="M 294,152 C 316,156 338,172 336,198 C 334,218 316,228 300,222 C 287,218 280,206 283,191 C 285,178 294,165 294,152 Z" />
-          <path d="M 295,155 C 310,162 328,170 335,182" />
-          <path d="M 206,152 C 184,156 162,172 164,198 C 166,218 184,228 200,222 C 213,218 220,206 217,191 C 215,178 206,165 206,152 Z" />
-          <path d="M 205,155 C 190,162 172,170 165,182" />
-          <path d="M 337,160 C 342,198 349,248 352,292" />
-          <path d="M 163,160 C 158,198 151,248 148,292" />
-          <path d="M 351,296 C 348,340 344,390 338,440" />
-          <path d="M 356,298 C 354,342 350,392 344,442" />
-          <path d="M 149,296 C 152,340 156,390 162,440" />
-          <path d="M 144,298 C 146,342 150,392 156,442" />
-        </g>
+          {/* ═══════════════════════════════════════════════════════
+              LAYER 1 — BONES
+              Spine has strong kyphotic C-curve (forward fold),
+              vertebral processes prominent, bones at correct
+              seated-stretch positions.
+          ═══════════════════════════════════════════════════════ */}
+          <g id="bones" stroke="#E8E8E8" fill="none" strokeWidth="1.5" opacity="0.42">
 
-        {/* LAYER 2 — BODY SILHOUETTE */}
-        <path
-          id="silhouette"
-          d="M 250,47 C 278,43 300,59 300,77 C 300,95 284,113 268,121 C 294,124 328,137 348,158 C 360,170 366,190 364,220 C 362,252 356,286 351,318 C 348,342 349,363 352,386 C 355,406 352,426 347,450 C 343,472 337,494 330,516 C 324,537 318,555 310,569 C 302,580 293,584 284,580 C 275,576 270,565 270,552 C 270,539 274,524 271,510 C 266,495 257,489 250,489 C 243,489 234,495 229,510 C 226,524 230,539 230,552 C 230,565 225,576 216,580 C 207,584 198,580 190,569 C 182,555 176,537 170,516 C 163,494 157,472 153,450 C 148,426 145,406 148,386 C 151,363 152,342 149,318 C 144,286 138,252 136,220 C 134,190 140,170 152,158 C 172,137 206,124 232,121 C 216,113 200,95 200,77 C 200,59 222,43 250,47 Z"
-          fill="#1a0000"
-          opacity="0.85"
-        />
+            {/* Spine — pronounced C-curve of thoracic kyphosis in forward fold.
+                Spinous processes are enlarged and more separated because
+                the posterior ligaments are under tension. */}
+            <path d="M 250,108 C 252,128 255,155 258,186 C 261,218 260,250 257,278 C 254,300 252,316 250,322" strokeWidth="1.8" />
+            {/* Cervical (C4–C7) — smaller, closer together */}
+            <ellipse cx="250" cy="113" rx="4.5" ry="5.5" />
+            <ellipse cx="250" cy="124" rx="4.5" ry="5.5" />
+            <ellipse cx="250" cy="135" rx="4.5" ry="5.5" />
+            {/* Thoracic (T1–T12) — largest, most prominent in kyphosis */}
+            <ellipse cx="251" cy="148" rx="6" ry="7.5" />
+            <ellipse cx="252" cy="162" rx="6" ry="7.5" />
+            <ellipse cx="253" cy="176" rx="6.5" ry="8" />
+            <ellipse cx="254" cy="190" rx="6.5" ry="8" />
+            <ellipse cx="255" cy="204" rx="6.5" ry="8" />
+            <ellipse cx="255" cy="218" rx="6" ry="7.5" />
+            <ellipse cx="255" cy="231" rx="6" ry="7.5" />
+            <ellipse cx="255" cy="244" rx="5.5" ry="7" />
+            {/* Lumbar (L1–L5) — in flexion, lose normal lordosis */}
+            <ellipse cx="254" cy="257" rx="5.5" ry="7" />
+            <ellipse cx="253" cy="270" rx="5.5" ry="6.5" />
+            <ellipse cx="252" cy="283" rx="5.5" ry="6.5" />
+            <ellipse cx="251" cy="296" rx="5.5" ry="6.5" />
+            <ellipse cx="250" cy="309" rx="5.5" ry="6" />
 
-        {/* LAYER 3 — MUSCLE GROUPS */}
+            {/* Pelvis — wide and spread (seated position, compressed against floor) */}
+            <path d="M 184,294 C 192,273 220,262 250,262 C 280,262 308,273 316,294 C 323,309 314,326 298,330 C 278,334 222,334 202,330 C 186,326 177,309 184,294 Z" />
 
-        {/* Trapezius */}
-        <g id="traps">
-          <path d="M 250,123 C 272,126 310,138 340,160 C 326,175 304,186 282,193 C 268,198 258,201 250,203 C 242,201 232,198 218,193 C 196,186 174,175 160,160 C 190,138 228,126 250,123 Z" fill="url(#grad-traps)" />
-        </g>
+            {/* Right femur — curves from ischium down toward knee */}
+            <path d="M 286,308 C 290,332 296,362 302,392 C 306,414 308,442 310,462" />
+            {/* Left femur */}
+            <path d="M 214,308 C 210,332 204,362 198,392 C 194,414 192,442 190,462" />
 
-        {/* Rear Deltoids */}
-        <g id="rear-delts">
-          <path d="M 338,154 C 352,152 368,163 368,180 C 368,196 355,207 341,204 C 328,201 320,190 324,176 C 327,164 333,156 338,154 Z" fill="url(#grad-reardelts)" />
-          <path d="M 162,154 C 148,152 132,163 132,180 C 132,196 145,207 159,204 C 172,201 180,190 176,176 C 173,164 167,156 162,154 Z" fill="url(#grad-reardelts)" />
-        </g>
+            {/* Right tibia (medial, thicker) */}
+            <path d="M 310,465 C 312,492 313,520 312,548" />
+            {/* Right fibula (lateral, thinner) */}
+            <path d="M 318,467 C 321,494 323,522 322,548" />
+            {/* Left tibia */}
+            <path d="M 190,465 C 188,492 187,520 188,548" />
+            {/* Left fibula */}
+            <path d="M 182,467 C 179,494 177,522 178,548" />
 
-        {/* Latissimus Dorsi */}
-        <g id="lats">
-          <path d="M 334,176 C 348,192 356,222 356,252 C 356,280 351,310 347,330 C 340,326 326,314 312,300 C 300,287 292,270 290,253 C 288,238 294,218 305,206 C 316,194 328,182 334,176 Z" fill="url(#grad-lats)" />
-          <path d="M 166,176 C 152,192 144,222 144,252 C 144,280 149,310 153,330 C 160,326 174,314 188,300 C 200,287 208,270 210,253 C 212,238 206,218 195,206 C 184,194 172,182 166,176 Z" fill="url(#grad-lats)" />
-        </g>
+            {/* Right calcaneus (heel bone) — elongated, seen from posterior */}
+            <ellipse cx="308" cy="562" rx="18" ry="8" />
+            {/* Left calcaneus */}
+            <ellipse cx="192" cy="562" rx="18" ry="8" />
 
-        {/* Erector Spinae */}
-        <g id="erectors">
-          <path d="M 259,136 C 267,140 275,154 276,172 C 277,198 276,232 274,266 C 273,295 271,322 268,348 C 265,362 261,372 257,376 C 253,368 252,352 252,332 C 252,306 254,277 255,250 C 257,222 258,192 258,168 C 258,152 258,140 259,136 Z" fill="url(#grad-erectors)" />
-          <path d="M 241,136 C 233,140 225,154 224,172 C 223,198 224,232 226,266 C 227,295 229,322 232,348 C 235,362 239,372 243,376 C 247,368 248,352 248,332 C 248,306 246,277 245,250 C 243,222 242,192 242,168 C 242,152 242,140 241,136 Z" fill="url(#grad-erectors)" />
-        </g>
+            {/* Ribcage right side — 7 arcs, more visible in forward fold */}
+            <path d="M 254,150 C 266,145 288,142 310,151" />
+            <path d="M 255,165 C 269,159 294,155 318,165" />
+            <path d="M 255,180 C 270,173 298,169 323,180" />
+            <path d="M 255,195 C 271,187 300,183 325,194" />
+            <path d="M 255,210 C 271,202 300,198 324,209" />
+            <path d="M 255,225 C 271,216 299,212 322,222" />
+            <path d="M 254,240 C 270,231 296,227 316,237" />
+            {/* Ribcage left side */}
+            <path d="M 246,150 C 234,145 212,142 190,151" />
+            <path d="M 245,165 C 231,159 206,155 182,165" />
+            <path d="M 245,180 C 230,173 202,169 177,180" />
+            <path d="M 245,195 C 229,187 200,183 175,194" />
+            <path d="M 245,210 C 229,202 200,198 176,209" />
+            <path d="M 245,225 C 229,216 201,212 178,222" />
+            <path d="M 246,240 C 230,231 204,227 184,237" />
 
-        {/* Gluteus Maximus */}
-        <g id="glutes">
-          <path d="M 251,362 C 265,355 290,349 314,357 C 334,364 350,380 351,398 C 352,415 342,432 326,438 C 312,444 295,443 280,436 C 266,429 257,416 254,402 C 251,390 251,375 251,362 Z" fill="url(#grad-glutes)" />
-          <path d="M 249,362 C 235,355 210,349 186,357 C 166,364 150,380 149,398 C 148,415 158,432 174,438 C 188,444 205,443 220,436 C 234,429 243,416 246,402 C 249,390 249,375 249,362 Z" fill="url(#grad-glutes)" />
-        </g>
+            {/* Right scapula — prominently winging in forward fold */}
+            <path d="M 292,146 C 314,150 336,166 334,192 C 332,211 315,220 300,215 C 286,210 280,198 283,183 C 285,169 292,158 292,146 Z" />
+            <path d="M 293,149 C 308,156 325,164 332,176" strokeWidth="2" />
+            {/* Left scapula */}
+            <path d="M 208,146 C 186,150 164,166 166,192 C 168,211 185,220 200,215 C 214,210 220,198 217,183 C 215,169 208,158 208,146 Z" />
+            <path d="M 207,149 C 192,156 175,164 168,176" strokeWidth="2" />
 
-        {/* Hamstrings — 4 paths: lateral + medial heads × left + right */}
-        <g id="hamstrings">
-          <path d="M 300,375 C 313,374 328,383 333,403 C 338,423 334,445 325,457 C 318,466 307,468 299,462 C 290,455 287,438 288,420 C 289,401 295,383 300,375 Z" fill="url(#grad-hamstrings)" />
-          <path d="M 278,378 C 290,376 303,386 304,407 C 306,426 301,447 291,458 C 284,466 274,467 267,460 C 259,452 258,434 261,414 C 264,395 270,381 278,378 Z" fill="url(#grad-hamstrings)" />
-          <path d="M 200,375 C 187,374 172,383 167,403 C 162,423 166,445 175,457 C 182,466 193,468 201,462 C 210,455 213,438 212,420 C 211,401 205,383 200,375 Z" fill="url(#grad-hamstrings)" />
-          <path d="M 222,378 C 210,376 197,386 196,407 C 194,426 199,447 209,458 C 216,466 226,467 233,460 C 241,452 242,434 239,414 C 236,395 230,381 222,378 Z" fill="url(#grad-hamstrings)" />
-        </g>
+            {/* Right humerus — arm reaching forward alongside body */}
+            <path d="M 334,154 C 340,188 347,238 350,280" strokeWidth="2.5" />
+            {/* Left humerus */}
+            <path d="M 166,154 C 160,188 153,238 150,280" strokeWidth="2.5" />
 
-        {/* Gastrocnemius — 4 paths: lateral + medial heads × left + right */}
-        <g id="calves">
-          <path d="M 304,464 C 317,463 330,472 332,489 C 335,506 328,525 317,532 C 308,537 297,535 291,527 C 285,519 285,504 289,490 C 293,476 300,465 304,464 Z" fill="url(#grad-calves)" />
-          <path d="M 283,465 C 295,462 306,472 307,489 C 308,505 302,524 292,531 C 283,537 272,535 266,526 C 260,517 261,500 265,487 C 269,473 276,467 283,465 Z" fill="url(#grad-calves)" />
-          <path d="M 196,464 C 183,463 170,472 168,489 C 165,506 172,525 183,532 C 192,537 203,535 209,527 C 215,519 215,504 211,490 C 207,476 200,465 196,464 Z" fill="url(#grad-calves)" />
-          <path d="M 217,465 C 205,462 194,472 193,489 C 192,505 198,524 208,531 C 217,537 228,535 234,526 C 240,517 239,500 235,487 C 231,473 224,467 217,465 Z" fill="url(#grad-calves)" />
-        </g>
+            {/* Right radius & ulna — forearm extended reaching toward feet */}
+            <path d="M 349,283 C 346,326 341,374 336,418" strokeWidth="2" />
+            <path d="M 354,285 C 352,328 348,376 344,420" strokeWidth="1.4" />
+            {/* Left radius & ulna */}
+            <path d="M 151,283 C 154,326 159,374 164,418" strokeWidth="2" />
+            <path d="M 146,285 C 148,328 152,376 156,420" strokeWidth="1.4" />
+          </g>
 
-        {/* Soleus */}
-        <g id="soleus">
-          <path d="M 318,527 C 327,530 336,540 337,554 C 338,567 330,578 318,579 C 307,580 294,575 288,564 C 282,553 283,538 290,531 C 297,524 310,524 318,527 Z" fill="url(#grad-soleus)" />
-          <path d="M 182,527 C 173,530 164,540 163,554 C 162,567 170,578 182,579 C 193,580 206,575 212,564 C 218,553 217,538 210,531 C 203,524 190,524 182,527 Z" fill="url(#grad-soleus)" />
-        </g>
+          {/* ═══════════════════════════════════════════════════════
+              LAYER 2 — BODY SILHOUETTE
+              Seated hamstring stretch, posterior view.
+              The torso is compact and hunched forward; arms are
+              extended down alongside the legs reaching for the feet.
+              Opacity reduced to 0.5 so muscles show through clearly.
+          ═══════════════════════════════════════════════════════ */}
+          <path
+            id="silhouette"
+            d="
+              M 250,28
+              C 278,28 290,44 290,64
+              C 290,80 281,96 270,104
+              C 275,109 287,114 308,118
+              C 328,122 344,126 352,136
+              C 360,148 362,168 358,192
+              C 354,218 346,248 340,275
+              C 335,296 330,316 326,332
+              C 322,348 318,366 315,386
+              C 312,410 310,436 309,460
+              C 308,484 308,508 309,532
+              C 309,544 310,554 309,562
+              C 308,570 302,576 290,577
+              C 278,578 264,574 260,566
+              C 257,558 257,548 258,528
+              C 259,504 260,480 261,456
+              C 262,430 262,404 263,380
+              C 264,362 265,346 267,332
+              C 269,320 250,316 250,316
+              C 250,316 231,320 233,332
+              C 235,346 236,362 237,380
+              C 238,404 238,430 239,456
+              C 240,480 241,504 242,528
+              C 243,548 243,558 240,566
+              C 236,574 222,578 210,577
+              C 198,576 192,570 191,562
+              C 190,554 191,544 191,532
+              C 192,508 192,484 191,460
+              C 190,436 188,410 185,386
+              C 182,366 178,348 174,332
+              C 170,316 165,296 160,275
+              C 154,248 146,218 142,192
+              C 138,168 140,148 148,136
+              C 156,126 172,122 192,118
+              C 213,114 225,109 230,104
+              C 219,96 210,80 210,64
+              C 210,44 222,28 250,28 Z
+            "
+            fill="#1a0000"
+            opacity="0.5"
+          />
 
-        {/* Triceps Brachii */}
-        <g id="triceps">
-          <path d="M 344,174 C 356,177 365,196 365,220 C 365,246 358,275 350,294 C 343,305 334,308 326,302 C 319,295 318,279 322,258 C 326,236 336,206 344,174 Z" fill="url(#grad-triceps)" />
-          <path d="M 156,174 C 144,177 135,196 135,220 C 135,246 142,275 150,294 C 157,305 166,308 174,302 C 181,295 182,279 178,258 C 174,236 164,206 156,174 Z" fill="url(#grad-triceps)" />
-        </g>
+          {/* ═══════════════════════════════════════════════════════
+              LAYER 3 — MUSCLE GROUPS
+          ═══════════════════════════════════════════════════════ */}
 
-        {/* Forearm Extensors */}
-        <g id="forearms">
-          <path d="M 354,298 C 364,306 368,332 366,360 C 364,388 356,420 347,448 C 341,468 334,480 327,482 C 321,477 317,460 320,435 C 323,410 333,378 341,350 C 347,325 350,305 354,298 Z" fill="url(#grad-forearms)" />
-          <path d="M 146,298 C 136,306 132,332 134,360 C 136,388 144,420 153,448 C 159,468 166,480 173,482 C 179,477 183,460 180,435 C 177,410 167,378 159,350 C 153,325 150,305 146,298 Z" fill="url(#grad-forearms)" />
-        </g>
+          {/* ── TRAPEZIUS ──────────────────────────────────────── */}
+          <g id="traps">
+            <path
+              d="M 250,115 C 272,117 308,129 340,152 C 325,168 303,178 282,185 C 268,190 258,192 250,194 C 242,192 232,190 218,185 C 197,178 175,168 160,152 C 192,129 228,117 250,115 Z"
+              fill="url(#grad-traps)"
+            />
+          </g>
 
-        {/* LABELS */}
-        <circle cx="308" cy="162" r="2.5" fill="#FF4422" />
-        <line x1="310" y1="161" x2="362" y2="142" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
-        <text x="364" y="146" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Trapezius</text>
+          {/* ── REAR DELTOIDS ───────────────────────────────────── */}
+          <g id="rear-delts">
+            <path
+              d="M 340,138 C 354,136 368,146 368,162 C 368,178 356,188 342,185 C 329,182 322,171 326,158 C 329,147 335,140 340,138 Z"
+              fill="url(#grad-reardelts)"
+            />
+            <path
+              d="M 160,138 C 146,136 132,146 132,162 C 132,178 144,188 158,185 C 171,182 178,171 174,158 C 171,147 165,140 160,138 Z"
+              fill="url(#grad-reardelts)"
+            />
+          </g>
 
-        <circle cx="354" cy="179" r="2.5" fill="#FF4422" />
-        <line x1="357" y1="178" x2="378" y2="165" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
-        <text x="380" y="169" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Rear Deltoid</text>
+          {/* ── LATISSIMUS DORSI ────────────────────────────────── */}
+          <g id="lats">
+            {/* Right lat — fan from axilla down to lower back */}
+            <path
+              d="M 336,162 C 350,178 358,208 358,238 C 358,265 353,292 348,312 C 341,308 328,296 314,282 C 302,269 294,252 292,235 C 290,220 296,200 307,188 C 318,176 330,164 336,162 Z"
+              fill="url(#grad-lats)"
+            />
+            {/* Left lat */}
+            <path
+              d="M 164,162 C 150,178 142,208 142,238 C 142,265 147,292 152,312 C 159,308 172,296 186,282 C 198,269 206,252 208,235 C 210,220 204,200 193,188 C 182,176 170,164 164,162 Z"
+              fill="url(#grad-lats)"
+            />
+          </g>
 
-        <circle cx="270" cy="228" r="2.5" fill="#FF4422" />
-        <line x1="272" y1="227" x2="350" y2="208" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
-        <text x="352" y="212" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Erector Spinae</text>
+          {/* ── ERECTOR SPINAE ──────────────────────────────────── */}
+          <g id="erectors">
+            {/* Right column — under high tension in forward fold */}
+            <path
+              d="M 258,122 C 266,126 274,140 275,158 C 276,184 275,218 273,252 C 271,281 269,308 266,332 C 263,344 260,352 256,356 C 252,348 251,332 251,312 C 251,286 253,258 254,232 C 256,204 257,174 257,152 C 257,137 257,125 258,122 Z"
+              fill="url(#grad-erectors)"
+            />
+            {/* Left column */}
+            <path
+              d="M 242,122 C 234,126 226,140 225,158 C 224,184 225,218 227,252 C 229,281 231,308 234,332 C 237,344 240,352 244,356 C 248,348 249,332 249,312 C 249,286 247,258 246,232 C 244,204 243,174 243,152 C 243,137 243,125 242,122 Z"
+              fill="url(#grad-erectors)"
+            />
+          </g>
 
-        <circle cx="355" cy="240" r="2.5" fill="#FF4422" />
-        <line x1="358" y1="239" x2="385" y2="228" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
-        <text x="387" y="232" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Triceps</text>
+          {/* ── GLUTEUS MAXIMUS ─────────────────────────────────── */}
+          <g id="glutes">
+            {/* Right — spread wide and somewhat flattened, seated */}
+            <path
+              d="M 252,322 C 266,316 290,310 314,318 C 334,325 350,340 351,358 C 352,374 343,390 328,396 C 314,402 298,401 282,394 C 268,387 259,374 256,360 C 252,346 251,332 252,322 Z"
+              fill="url(#grad-glutes)"
+            />
+            {/* Left */}
+            <path
+              d="M 248,322 C 234,316 210,310 186,318 C 166,325 150,340 149,358 C 148,374 157,390 172,396 C 186,402 202,401 218,394 C 232,387 241,374 244,360 C 248,346 249,332 248,322 Z"
+              fill="url(#grad-glutes)"
+            />
+          </g>
 
-        <circle cx="342" cy="258" r="2.5" fill="#FF4422" />
-        <line x1="345" y1="257" x2="375" y2="248" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
-        <text x="377" y="252" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Latissimus Dorsi</text>
+          {/* ── HAMSTRINGS ──────────────────────────────────────── */}
+          {/* 4 paths: biceps femoris (lateral) + semimembranosus
+              (medial) for each leg. Under maximum stretch — the
+              bellies are elongated and taut, not round.          */}
+          <g id="hamstrings">
+            {/* Right biceps femoris — outer/lateral */}
+            <path
+              d="M 310,368 C 323,366 336,376 340,396 C 345,415 340,437 330,448 C 322,457 312,458 304,452 C 295,445 292,427 294,408 C 297,389 302,370 310,368 Z"
+              fill="url(#grad-hamstrings)"
+            />
+            {/* Right semimembranosus / semitendinosus — inner/medial */}
+            <path
+              d="M 284,372 C 296,368 309,378 310,398 C 312,418 307,440 297,450 C 289,458 279,459 272,452 C 264,443 263,424 266,405 C 270,385 276,375 284,372 Z"
+              fill="url(#grad-hamstrings)"
+            />
+            {/* Left biceps femoris — outer/lateral */}
+            <path
+              d="M 190,368 C 177,366 164,376 160,396 C 155,415 160,437 170,448 C 178,457 188,458 196,452 C 205,445 208,427 206,408 C 203,389 198,370 190,368 Z"
+              fill="url(#grad-hamstrings)"
+            />
+            {/* Left semimembranosus / semitendinosus — inner/medial */}
+            <path
+              d="M 216,372 C 204,368 191,378 190,398 C 188,418 193,440 203,450 C 211,458 221,459 228,452 C 236,443 237,424 234,405 C 230,385 224,375 216,372 Z"
+              fill="url(#grad-hamstrings)"
+            />
+          </g>
 
-        <circle cx="358" cy="352" r="2.5" fill="#FF4422" />
-        <line x1="361" y1="351" x2="388" y2="338" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
-        <text x="390" y="342" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Forearm Ext.</text>
+          {/* ── GASTROCNEMIUS ───────────────────────────────────── */}
+          {/* Also under stretch (knee extended). Two heads per leg. */}
+          <g id="calves">
+            {/* Right lateral head */}
+            <path
+              d="M 315,462 C 327,460 340,470 342,487 C 344,504 338,522 327,528 C 318,533 307,531 301,523 C 295,515 296,499 300,486 C 304,472 310,464 315,462 Z"
+              fill="url(#grad-calves)"
+            />
+            {/* Right medial head */}
+            <path
+              d="M 292,463 C 304,459 316,470 317,487 C 318,503 312,522 302,528 C 293,534 282,532 277,523 C 271,514 272,497 277,485 C 282,472 287,466 292,463 Z"
+              fill="url(#grad-calves)"
+            />
+            {/* Left lateral head */}
+            <path
+              d="M 185,462 C 173,460 160,470 158,487 C 156,504 162,522 173,528 C 182,533 193,531 199,523 C 205,515 204,499 200,486 C 196,472 190,464 185,462 Z"
+              fill="url(#grad-calves)"
+            />
+            {/* Left medial head */}
+            <path
+              d="M 208,463 C 196,459 184,470 183,487 C 182,503 188,522 198,528 C 207,534 218,532 223,523 C 229,514 228,497 223,485 C 218,472 213,466 208,463 Z"
+              fill="url(#grad-calves)"
+            />
+          </g>
 
-        <circle cx="332" cy="398" r="2.5" fill="#FF4422" />
-        <line x1="335" y1="397" x2="378" y2="382" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
-        <text x="380" y="386" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Glut. Maximus</text>
+          {/* ── SOLEUS & ACHILLES REGION ────────────────────────── */}
+          {/* Shaped as the heel/ankle seen from posterior — wide
+              horizontal oval, clearly a heel not a circle.        */}
+          <g id="soleus">
+            {/* Right heel / soleus insertion — wide, flat, heel-shaped */}
+            <path
+              d="M 270,530 C 266,540 267,554 278,562 C 287,568 308,568 322,560 C 330,554 330,540 322,534 C 312,528 274,528 270,530 Z"
+              fill="url(#grad-soleus)"
+            />
+            {/* Left heel / soleus insertion */}
+            <path
+              d="M 230,530 C 234,540 233,554 222,562 C 213,568 192,568 178,560 C 170,554 170,540 178,534 C 188,528 226,528 230,530 Z"
+              fill="url(#grad-soleus)"
+            />
+          </g>
 
-        <circle cx="320" cy="422" r="2.5" fill="#FF4422" />
-        <line x1="323" y1="421" x2="378" y2="410" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
-        <text x="380" y="414" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Hamstrings</text>
+          {/* ── TRICEPS BRACHII ─────────────────────────────────── */}
+          {/* Arms are extended forward reaching toward feet,
+              so triceps are elongated along the posterior upper arm. */}
+          <g id="triceps">
+            {/* Right — elongated oval running down posterior upper arm */}
+            <path
+              d="M 350,150 C 362,153 370,172 370,196 C 370,222 363,250 354,268 C 347,278 338,280 330,274 C 323,268 322,252 326,232 C 330,210 340,180 350,150 Z"
+              fill="url(#grad-triceps)"
+            />
+            {/* Left */}
+            <path
+              d="M 150,150 C 138,153 130,172 130,196 C 130,222 137,250 146,268 C 153,278 162,280 170,274 C 177,268 178,252 174,232 C 170,210 160,180 150,150 Z"
+              fill="url(#grad-triceps)"
+            />
+          </g>
 
-        <circle cx="322" cy="496" r="2.5" fill="#FF4422" />
-        <line x1="325" y1="495" x2="372" y2="480" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
-        <text x="374" y="484" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Gastrocnemius</text>
+          {/* ── FOREARM EXTENSORS ───────────────────────────────── */}
+          {/* Forearms extended far down alongside the legs,
+              reaching toward the feet — implies forward lean.     */}
+          <g id="forearms">
+            {/* Right — runs from elbow down toward ankle level */}
+            <path
+              d="M 358,274 C 368,282 372,308 369,338 C 366,368 358,402 349,432 C 342,454 334,468 327,470 C 321,465 318,448 322,422 C 326,396 336,362 344,332 C 350,306 354,284 358,274 Z"
+              fill="url(#grad-forearms)"
+            />
+            {/* Left */}
+            <path
+              d="M 142,274 C 132,282 128,308 131,338 C 134,368 142,402 151,432 C 158,454 166,468 173,470 C 179,465 182,448 178,422 C 174,396 164,362 156,332 C 150,306 146,284 142,274 Z"
+              fill="url(#grad-forearms)"
+            />
+          </g>
 
-        <circle cx="322" cy="548" r="2.5" fill="#FF4422" />
-        <line x1="325" y1="547" x2="368" y2="534" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
-        <text x="370" y="538" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Soleus</text>
-      </svg>
+          {/* ═══════════════════════════════════════════════════════
+              LABELS — right-side annotations
+          ═══════════════════════════════════════════════════════ */}
+
+          {/* Trapezius */}
+          <circle cx="308" cy="154" r="2.5" fill="#FF4422" />
+          <line x1="310" y1="153" x2="362" y2="132" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
+          <text x="364" y="136" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Trapezius</text>
+
+          {/* Rear Deltoid */}
+          <circle cx="354" cy="163" r="2.5" fill="#FF4422" />
+          <line x1="357" y1="162" x2="380" y2="150" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
+          <text x="382" y="154" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Rear Deltoid</text>
+
+          {/* Erector Spinae */}
+          <circle cx="270" cy="215" r="2.5" fill="#FF4422" />
+          <line x1="272" y1="214" x2="352" y2="195" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
+          <text x="354" y="199" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Erector Spinae</text>
+
+          {/* Triceps */}
+          <circle cx="355" cy="225" r="2.5" fill="#FF4422" />
+          <line x1="358" y1="224" x2="385" y2="212" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
+          <text x="387" y="216" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Triceps</text>
+
+          {/* Latissimus Dorsi */}
+          <circle cx="342" cy="248" r="2.5" fill="#FF4422" />
+          <line x1="345" y1="247" x2="376" y2="236" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
+          <text x="378" y="240" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Latissimus Dorsi</text>
+
+          {/* Forearm Extensors */}
+          <circle cx="360" cy="340" r="2.5" fill="#FF4422" />
+          <line x1="363" y1="339" x2="390" y2="326" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
+          <text x="392" y="330" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Forearm Ext.</text>
+
+          {/* Gluteus Maximus */}
+          <circle cx="333" cy="358" r="2.5" fill="#FF4422" />
+          <line x1="336" y1="357" x2="378" y2="344" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
+          <text x="380" y="348" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Glut. Maximus</text>
+
+          {/* Hamstrings */}
+          <circle cx="326" cy="410" r="2.5" fill="#FF4422" />
+          <line x1="329" y1="409" x2="378" y2="396" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
+          <text x="380" y="400" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Hamstrings</text>
+
+          {/* Gastrocnemius */}
+          <circle cx="325" cy="490" r="2.5" fill="#FF4422" />
+          <line x1="328" y1="489" x2="374" y2="474" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
+          <text x="376" y="478" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Gastrocnemius</text>
+
+          {/* Soleus / Heel */}
+          <circle cx="316" cy="548" r="2.5" fill="#FF4422" />
+          <line x1="319" y1="547" x2="364" y2="533" stroke="#FFFFFF" strokeWidth="0.75" opacity="0.6" />
+          <text x="366" y="537" fontFamily="system-ui,-apple-system,sans-serif" fontSize="11" fill="#FFFFFF">Soleus</text>
+        </svg>
+      </div>
     </div>
   );
 }

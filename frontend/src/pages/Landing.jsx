@@ -257,6 +257,13 @@ export default function Landing() {
           </span>
         </div>
 
+        {/* Floating emojis */}
+        <div className="flex items-end justify-center gap-14 mb-6 h-16 select-none pointer-events-none">
+          <span className="emoji-float-1" style={{ fontSize: '48px', marginBottom: '4px' }}>🥩</span>
+          <span className="emoji-float-2" style={{ fontSize: '48px', marginBottom: '0px' }}>🏋️</span>
+          <span className="emoji-float-3" style={{ fontSize: '48px', marginBottom: '8px' }}>💪</span>
+        </div>
+
         {/* Headline */}
         <h1 className="text-[clamp(48px,8vw,88px)] font-bold leading-[1.05] tracking-[-0.03em] mb-5 max-w-3xl">
           Track your gains.
