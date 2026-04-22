@@ -23,8 +23,8 @@ export default function AnatomyFigure({ className = '' }) {
     >
       <style>{`
         @keyframes anatomyPulse {
-          0%, 100% { filter: grayscale(1) brightness(0.4) sepia(1) saturate(4) hue-rotate(300deg) contrast(1.4); }
-          50%       { filter: grayscale(1) brightness(0.65) sepia(1) saturate(4) hue-rotate(300deg) contrast(1.4); }
+          0%, 100% { filter: grayscale(1) brightness(0.45) contrast(1.5); }
+          50%       { filter: grayscale(1) brightness(0.65) contrast(1.5); }
         }
         .anatomy-figure {
           animation: anatomyPulse 3s ease-in-out infinite;
@@ -36,7 +36,7 @@ export default function AnatomyFigure({ className = '' }) {
         alt="Posterior muscular anatomy diagram"
         className="anatomy-figure"
         style={{
-          filter: 'grayscale(1) brightness(0.5) sepia(1) saturate(4) hue-rotate(300deg) contrast(1.4)',
+          filter: 'grayscale(1) brightness(0.55) contrast(1.5)',
           width: '400px',
           display: 'block',
           margin: '0 auto',
