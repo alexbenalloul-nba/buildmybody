@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
+import AnatomyFigure from '../components/AnatomyFigure';
 
 // ── App UI Mockup ─────────────────────────────────────────────────────────────
 
@@ -281,6 +282,8 @@ export default function Landing() {
             Sign In
           </button>
         </div>
+
+        <AnatomyFigure className="max-w-sm mx-auto" />
 
         {/* App mockup */}
         <div className="w-full max-w-[280px] mx-auto">
