@@ -248,12 +248,12 @@ export default function Landing() {
       </header>
 
       {/* ── Hero ── */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 pb-12 text-center" style={{ position: 'relative', paddingTop: '110px' }}>
-        {/* Floating emojis — absolutely positioned */}
-        <div className="select-none pointer-events-none" style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '110px' }}>
-          <span className="emoji-float-1" style={{ position: 'absolute', top: '20px', left: '28%', fontSize: '48px' }}>⚡</span>
-          <span className="emoji-float-2" style={{ position: 'absolute', top: '60px', left: '50%', transform: 'translateX(-50%)', fontSize: '48px' }}>🔥</span>
-          <span className="emoji-float-3" style={{ position: 'absolute', top: '10px', right: '26%', fontSize: '48px' }}>💪</span>
+      <main className="flex-1 flex flex-col items-center justify-center px-6 pt-16 pb-12 text-center">
+        {/* Floating emojis */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '64px', marginBottom: '24px', alignItems: 'center' }}>
+          <span style={{ fontSize: '40px', transform: 'translateY(8px)', animation: 'floatEmoji1 4.2s ease-in-out infinite' }}>⚡</span>
+          <span style={{ fontSize: '40px', transform: 'translateY(-12px)', animation: 'floatEmoji2 3.8s ease-in-out 0.6s infinite' }}>🔥</span>
+          <span style={{ fontSize: '40px', transform: 'translateY(4px)', animation: 'floatEmoji3 4.5s ease-in-out 1.2s infinite' }}>💪</span>
         </div>
 
         {/* Eyebrow badge */}
